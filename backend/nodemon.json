@@ -1,0 +1,8 @@
+{
+  "exec": "node --no-deprecation server.js",
+  "watch": ["*.js", "**/*.js"],
+  "ignore": ["node_modules", "*.test.js"],
+  "ext": "js,json"
+}
+
+
