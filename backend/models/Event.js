@@ -8,6 +8,8 @@ const EventSchema = new mongoose.Schema(
     date: { type: Date, required: true },
     venue: { type: String },
     location: { type: mongoose.Schema.Types.ObjectId, ref: 'Location' },
+    committee: { type: mongoose.Schema.Types.ObjectId, ref: 'Committee' },
+    images: [{ type: String }],
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     attendees: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Member' }]
   },

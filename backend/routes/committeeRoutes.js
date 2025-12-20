@@ -10,15 +10,15 @@ const {
   addMemberToCommittee,
   removeMemberFromCommittee
 } = require('../controllers/committeeController')
-const { protect } = require('../middlewares/authMiddleware')
+const { protect, admin } = require('../middlewares/authMiddleware')
 const { requireBody } = require('../middlewares/validateRequest')
 
 router.get('/', protect, listCommittees)
-router.post('/', protect, requireBody(['name']), createCommittee)
+router.post('/', protect, admin, requireBody(['name']), createCommittee)
 router.get('/:id', protect, getCommittee)
-router.put('/:id', protect, updateCommittee)
-router.delete('/:id', protect, deleteCommittee)
+router.put('/:id', protect, admin, updateCommittee)
+router.delete('/:id', protect, admin, deleteCommittee)
 router.post('/:committeeId/members', protect, requireBody(['memberId']), addMemberToCommittee)
-router.delete('/:committeeId/members/:memberId', protect, removeMemberFromCommittee)
+router.delete('/:committeeId/members/:memberId', protect, admin, removeMemberFromCommittee)
 
 module.exports = router

@@ -7,7 +7,11 @@ const LocationSchema = new mongoose.Schema(
     address: { type: String, required: true },
     city: { type: String, required: true },
     capacity: { type: Number },
-    contactPhone: { type: String }
+    contactPhone: { type: String },
+    coordinates: {
+      lat: { type: Number },
+      lng: { type: Number }
+    }
   },
   { timestamps: true }
 )

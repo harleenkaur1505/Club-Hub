@@ -41,13 +41,42 @@ const miniClubs = [
   }
 ]
 
+const clubBackgrounds = {
+  'Cozy and Lifestyle Club': 'https://images.unsplash.com/photo-1540518614846-7eded433c457?auto=format&fit=crop&q=80&w=1000', // Warm interior
+  'Academic Club': 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=1000', // Library
+  'Creative and Fun Club': 'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?auto=format&fit=crop&q=80&w=1000', // Art
+  'Social and Community Club': 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=1000', // Friends
+  'Tech and Skill Club': 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=1000', // Coding
+  'Mental Health Awareness Club': 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=1000' // Yoga/Nature
+}
+
 export default function Home() {
   const [clubs, setClubs] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     loadClubs()
-  }, [])
+    
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animate-slide-up')
+          observer.unobserve(entry.target) // Only animate once
+        }
+      })
+    }, {
+      threshold: 0.1,
+      rootMargin: '50px'
+    })
+
+    // Observe elements with 'scroll-animate' class
+    setTimeout(() => {
+      document.querySelectorAll('.scroll-animate').forEach(el => observer.observe(el))
+    }, 100) // Small delay to ensure DOM is ready
+
+    return () => observer.disconnect()
+  }, [clubs]) // Re-run when clubs load to attach observers to new elements
 
   const loadClubs = async () => {
     try {
@@ -61,108 +90,122 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto fade-in">
-      <div className="text-center mb-8">
-        <h1 className="text-5xl font-bold mb-6 gradient-text float-animation">
-          Welcome to the Club Membership System
-        </h1>
-        <p className="text-xl mb-8 leading-relaxed max-w-2xl mx-auto font-medium" style={{ color: '#800020' }}>
-          Manage members, collect dues, plan events and coordinate committees easily with our cozy platform.
-        </p>
-      </div>
-      
-      <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
-        <Link 
-          to="/register" 
-          className="px-8 py-4 text-white rounded-lg text-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105 border-2"
-          style={{ background: 'linear-gradient(135deg, #800020 0%, #A0002A 50%, #C9A961 100%)', borderColor: 'rgba(128, 0, 32, 0.3)' }}
-        >
-          Get Started
-        </Link>
-        <Link 
-          to="/committees" 
-          className="px-8 py-4 border-2 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg"
-          style={{ borderColor: '#800020', color: '#800020', backgroundColor: '#F5F5DC' }}
-          onMouseEnter={(e) => { e.target.style.backgroundColor = '#800020'; e.target.style.color = 'white'; }}
-          onMouseLeave={(e) => { e.target.style.backgroundColor = '#F5F5DC'; e.target.style.color = '#800020'; }}
-        >
-          Explore Clubs
-        </Link>
-        <Link 
-          to="/events" 
-          className="px-8 py-4 border-2 rounded-lg text-lg font-semibold transition-all transform hover:scale-105 shadow-lg"
-          style={{ borderColor: '#800020', color: '#800020', backgroundColor: '#F5F5DC' }}
-          onMouseEnter={(e) => { e.target.style.backgroundColor = '#800020'; e.target.style.color = 'white'; }}
-          onMouseLeave={(e) => { e.target.style.backgroundColor = '#F5F5DC'; e.target.style.color = '#800020'; }}
-        >
-          View Events
-        </Link>
-      </div>
+    <div className="fade-in">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
+        <div className="text-center mb-16 px-4">
+          <h1 className="text-6xl md:text-7xl font-thin font-outfit mb-8 text-[#442D1C] tracking-[0.2em] leading-tight drop-shadow-sm py-6">
+            Welcome to <span className="font-normal text-[#442D1C]">the Club</span>
+          </h1>
+          <p className="text-2xl md:text-3xl mb-8 leading-relaxed max-w-3xl mx-auto font-medium text-[#442D1C]">
+            Manage members, collect dues, plan events and coordinate committees easily with our cozy platform.
+          </p>
+        </div>
 
-      {/* Mini Clubs Section */}
-      <div className="mb-20">
-        <h2 className="text-3xl font-bold text-center mb-8 text-white drop-shadow-lg">Our Mini Clubs</h2>
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {miniClubs.map((club, index) => {
-            const clubData = clubs.find(c => c.name === club.name)
-            const memberCount = clubData?.members?.length || 0
-            
-            return (
-              <div 
-                key={club.name} 
-                className="p-6 bg-white rounded-lg shadow-lg slide-in-up hover:shadow-xl transition-all transform hover:scale-105"
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${club.color} flex items-center justify-center text-3xl mb-4 mx-auto`}>
-                  {club.icon}
+        <div className="mb-24">
+          <h1 className="text-5xl md:text-6xl font-thin font-outfit text-center mb-12 text-[#442D1C] tracking-[0.2em] drop-shadow-sm">Clubs</h1>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {miniClubs.map((club, index) => {
+              const clubData = clubs.find(c => c.name === club.name)
+              const memberCount = clubData?.members?.length || 0
+
+              return (
+                <div
+                  key={club.name}
+                  className="group relative overflow-hidden rounded-3xl bg-[#442D1C] shadow-[0_15px_35px_rgba(68,45,28,0.5)] transition-all duration-500 h-72 flex flex-col scroll-animate opacity-0 translate-y-8 hover:scale-105"
+                  style={{ transitionDelay: `${index * 100}ms` }}
+                >
+                  {/* Background Image with Brown Tint */}
+                  <div
+                    className="absolute inset-0 z-0 transition-transform duration-700 group-hover:scale-110 opacity-40 mix-blend-multiply"
+                    style={{
+                      backgroundImage: `url(${clubBackgrounds[club.name] || 'https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&q=80&w=1000'})`,
+                      backgroundSize: 'cover',
+                      backgroundPosition: 'center',
+                    }}
+                  />
+
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#442D1C]/90 via-[#442D1C]/60 to-transparent group-hover:from-[#442D1C]/95 transition-all duration-500" />
+
+                  {/* Content Container */}
+                  <div className="relative z-20 flex flex-col h-full p-8 text-white text-center">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-4 mx-auto shadow-lg backdrop-blur-md bg-white/20 border border-white/30 group-hover:scale-110 transition-transform duration-300`}>
+                      {club.icon}
+                    </div>
+                    <h3 className="font-bold text-xl mb-2 text-white drop-shadow-md group-hover:text-white group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.8)] transition-all duration-300">{club.name}</h3>
+                    <p className="text-white text-sm mb-auto line-clamp-3 leading-relaxed font-medium drop-shadow-sm group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-300">{club.description}</p>
+                    <div className="mt-4 pt-4 border-t border-white/20">
+                      <span className="text-xs font-semibold text-gray-100 bg-white/20 px-4 py-1.5 rounded-full backdrop-blur-sm border border-white/10">
+                        {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-bold text-xl mb-2 text-center text-gray-800">{club.name}</h3>
-                <p className="text-gray-600 text-sm mb-4 text-center">{club.description}</p>
-                <div className="text-center">
-                  <span className="text-sm font-semibold text-gray-700">
-                    {memberCount} {memberCount === 1 ? 'Member' : 'Members'}
-                  </span>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Features Section */}
+        <div className="mt-12">
+          <h1 className="text-5xl md:text-6xl font-thin font-outfit text-center mb-12 text-[#442D1C] tracking-[0.2em] drop-shadow-sm">System Features</h1>
+          <div className="grid md:grid-cols-3 gap-8">
+            {[
+              {
+                title: 'Member Management',
+                icon: '👥',
+                description: 'Easily track and manage all your club members',
+                image: 'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&q=80&w=1000' // Team working by Brooke Cagle
+              },
+              {
+                title: 'Event Planning',
+                icon: '📅',
+                description: 'Plan and organize events seamlessly',
+                image: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=1000' // Calendar/Planning
+              },
+              {
+                title: 'Committee Coordination',
+                icon: '💼',
+                description: 'Streamline committee workflows',
+                image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&q=80&w=1000' // Team collaboration
+              }
+            ].map((feature, index) => (
+              <div
+                key={feature.title}
+                className="relative overflow-hidden rounded-3xl bg-[#442D1C] shadow-[0_15px_35px_rgba(68,45,28,0.5)] text-center scroll-animate opacity-0 translate-y-8 group hover:scale-105 transition-all duration-500 h-[300px] flex flex-col justify-center p-8"
+                style={{ transitionDelay: `${index * 150}ms` }}
+              >
+                {/* Background Image with Brown Tint */}
+                <div
+                  className="absolute inset-0 z-0 transition-transform duration-700 group-hover:scale-110 opacity-40 mix-blend-multiply"
+                  style={{
+                    backgroundImage: `url(${feature.image})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+
+                {/* Dark Gradient Overlay */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#442D1C]/90 via-[#442D1C]/60 to-transparent group-hover:from-[#442D1C]/95 transition-all duration-500" />
+
+                {/* Content */}
+                <div className="relative z-20 flex flex-col items-center">
+                  <div className="text-5xl mb-5 transform group-hover:scale-110 transition-transform duration-300 drop-shadow-md">
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-bold text-2xl mb-3 text-white tracking-tight drop-shadow-md group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.8)] transition-all duration-300">
+                    {feature.title}
+                  </h3>
+                  <p className="text-white text-base font-medium max-w-[90%] mx-auto leading-relaxed drop-shadow-sm group-hover:drop-shadow-[0_0_8px_rgba(255,255,255,0.4)] transition-all duration-300">
+                    {feature.description}
+                  </p>
                 </div>
               </div>
-            )
-          })}
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Divider Section */}
-      <div className="my-16 flex items-center justify-center">
-        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-maroon-300/60 to-transparent" style={{ background: 'linear-gradient(to right, transparent, rgba(201, 169, 97, 0.5), transparent)' }}></div>
-        <div className="mx-6 px-4 py-2 backdrop-blur-sm rounded-full border-2 shadow-lg" style={{ 
-          background: 'rgba(128, 0, 32, 0.4)',
-          borderColor: 'rgba(201, 169, 97, 0.4)',
-          boxShadow: '0 4px 12px rgba(128, 0, 32, 0.2)'
-        }}>
-          <span className="font-semibold text-sm drop-shadow" style={{ color: '#F5F5DC' }}>Platform Features</span>
-        </div>
-        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-maroon-300/60 to-transparent" style={{ background: 'linear-gradient(to right, transparent, rgba(201, 169, 97, 0.5), transparent)' }}></div>
-      </div>
-
-      {/* Features Section */}
-      <div className="mt-8">
-        <h2 className="text-3xl font-bold text-center mb-8 text-white drop-shadow-lg">System Features</h2>
-        <div className="grid md:grid-cols-3 gap-6">
-          <div className="p-6 bg-white rounded-lg shadow-lg text-center slide-in-up" style={{ animationDelay: '0.1s' }}>
-            <div className="text-4xl mb-4">👥</div>
-            <h3 className="font-semibold text-lg mb-2">Member Management</h3>
-            <p className="text-gray-600 text-sm">Easily track and manage all your club members</p>
-          </div>
-          <div className="p-6 bg-white rounded-lg shadow-lg text-center slide-in-up" style={{ animationDelay: '0.2s' }}>
-            <div className="text-4xl mb-4">📅</div>
-            <h3 className="font-semibold text-lg mb-2">Event Planning</h3>
-            <p className="text-gray-600 text-sm">Plan and organize events seamlessly</p>
-          </div>
-          <div className="p-6 bg-white rounded-lg shadow-lg text-center slide-in-up" style={{ animationDelay: '0.3s' }}>
-            <div className="text-4xl mb-4">💼</div>
-            <h3 className="font-semibold text-lg mb-2">Committee Coordination</h3>
-            <p className="text-gray-600 text-sm">Streamline committee workflows</p>
-          </div>
-        </div>
-      </div>
     </div>
   )
 }

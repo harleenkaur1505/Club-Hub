@@ -8,12 +8,12 @@ const {
   updateEvent,
   deleteEvent
 } = require('../controllers/eventController')
-const { protect } = require('../middlewares/authMiddleware')
+const { protect, admin } = require('../middlewares/authMiddleware')
 
 router.get('/', protect, listEvents)
-router.post('/', protect, createEvent)
+router.post('/', protect, admin, createEvent)
 router.get('/:id', protect, getEvent)
-router.put('/:id', protect, updateEvent)
-router.delete('/:id', protect, deleteEvent)
+router.put('/:id', protect, admin, updateEvent)
+router.delete('/:id', protect, admin, deleteEvent)
 
 module.exports = router

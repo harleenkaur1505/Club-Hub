@@ -7,6 +7,7 @@ const { protect, admin } = require('../middlewares/authMiddleware')
 router.get('/', protect, paymentController.listPayments)
 router.get('/stats', protect, paymentController.getPaymentStats) // Must be before /:id
 router.post('/', protect, admin, paymentController.createPayment)
+router.put('/:id', protect, paymentController.updatePayment)
 router.get('/:id', protect, paymentController.getPayment)
 
 module.exports = router

@@ -4,7 +4,12 @@ const Event = require('../models/Event')
 // list
 exports.listEvents = async (req, res, next) => {
   try {
-    const events = await Event.find().sort({ date: 1 })
+    const filter = {}
+    if (req.query.upcoming === 'true') {
+      // Filter for future events (date >= now)
+      filter.date = { $gte: new Date() }
+    }
+    const events = await Event.find(filter).sort({ date: 1 })
     res.json({ events })
   } catch (err) {
     next(err)

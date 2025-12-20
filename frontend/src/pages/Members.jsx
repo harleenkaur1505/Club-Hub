@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchMembers } from '../redux/memberSlice'
 import { membersAPI, committeesAPI } from '../services/membershipAPI'
 import MemberCard from '../components/MemberCard'
+import { useAuth } from '../hooks/useAuth'
 
 // Club data matching the home page
 const MINI_CLUBS_DATA = [
@@ -68,15 +69,17 @@ const getGradientFromTailwind = (tailwindClass) => {
     'from-pink-500 to-purple-600': 'linear-gradient(135deg, #ec4899 0%, #9333ea 100%)',
     'from-green-500 to-teal-600': 'linear-gradient(135deg, #10b981 0%, #0d9488 100%)',
     'from-purple-500 to-pink-600': 'linear-gradient(135deg, #a855f7 0%, #ec4899 100%)',
-    'from-blue-500 to-indigo-600': 'linear-gradient(135deg, #800020 0%, #A0002A 100%)', // Maroon fallback
-    'from-cyan-500 to-blue-600': 'linear-gradient(135deg, #800020 0%, #A0002A 100%)', // Maroon fallback
+    'from-blue-500 to-indigo-600': 'linear-gradient(135deg, #442D1C 0%, #5D3E26 100%)', // Maroon fallback
+    'from-cyan-500 to-blue-600': 'linear-gradient(135deg, #442D1C 0%, #5D3E26 100%)', // Maroon fallback
   }
-  return gradientMap[tailwindClass] || 'linear-gradient(135deg, #800020 0%, #A0002A 100%)'
+  return gradientMap[tailwindClass] || 'linear-gradient(135deg, #442D1C 0%, #5D3E26 100%)'
 }
 
 export default function Members() {
   const dispatch = useDispatch()
-  const { list, loading } = useSelector((state) => state.members)
+  const { user } = useAuth()
+  const { list, loading, error: reduxError } = useSelector((state) => state.members)
+
   const [showForm, setShowForm] = useState(false)
   const [committees, setCommittees] = useState([])
   const [selectedClubs, setSelectedClubs] = useState([])
@@ -93,21 +96,24 @@ export default function Members() {
 
   useEffect(() => {
     dispatch(fetchMembers())
-    loadCommittees()
   }, [dispatch])
+
+  useEffect(() => {
+    loadCommittees()
+  }, []) // Load committees only once
 
   const loadCommittees = async () => {
     try {
       const { data } = await committeesAPI.list()
       const allCommittees = data.committees || []
-      
+
       // Filter only mini clubs - case-insensitive comparison
       const miniClubsList = allCommittees.filter(c => {
         if (!c || !c.name) return false
         const committeeName = c.name.trim().toLowerCase()
         return MINI_CLUBS.some(miniClub => miniClub.trim().toLowerCase() === committeeName)
       })
-      
+
       // If no mini clubs found, show all available committees as fallback
       // This allows users to select from any available clubs
       if (miniClubsList.length === 0 && allCommittees.length > 0) {
@@ -128,30 +134,30 @@ export default function Members() {
       // Get all existing committees
       const { data } = await committeesAPI.list()
       const existingCommittees = (data.committees || []).map(c => c.name.trim().toLowerCase())
-      
+
       // Create missing clubs
       const clubsToCreate = MINI_CLUBS_DATA.filter(club => {
         const clubNameLower = club.name.trim().toLowerCase()
         return !existingCommittees.includes(clubNameLower)
       })
-      
+
       if (clubsToCreate.length === 0) {
         setClubError('All mini clubs already exist! Refreshing...')
         await loadCommittees()
         setCreatingClubs(false)
         return
       }
-      
+
       // Create all missing clubs
-      const createPromises = clubsToCreate.map(club => 
+      const createPromises = clubsToCreate.map(club =>
         committeesAPI.create({
           name: club.name,
           description: club.description
         })
       )
-      
+
       await Promise.all(createPromises)
-      
+
       // Reload committees
       await loadCommittees()
       setClubError(null)
@@ -173,7 +179,7 @@ export default function Members() {
 
       // Add member to selected clubs
       if (selectedClubs.length > 0) {
-        const addToClubPromises = selectedClubs.map(clubId => 
+        const addToClubPromises = selectedClubs.map(clubId =>
           committeesAPI.addMember(clubId, newMemberId)
         )
         await Promise.all(addToClubPromises)
@@ -197,6 +203,7 @@ export default function Members() {
   }
 
   const handleClubToggle = (clubId) => {
+    // ... (same as before)
     setSelectedClubs(prev => {
       if (prev.includes(clubId)) {
         return prev.filter(id => id !== clubId)
@@ -221,80 +228,85 @@ export default function Members() {
 
   return (
     <div className="fade-in">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold gradient-text">Members</h2>
-        <button
-          onClick={() => showForm ? handleFormCancel() : setShowForm(true)}
-          className="px-6 py-3 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-          style={{ background: 'linear-gradient(135deg, #800020 0%, #A0002A 50%, #C9A961 100%)' }}
-        >
-          {showForm ? 'Cancel' : '+ Add Member'}
-        </button>
+      <div className="flex justify-between items-center mb-12">
+        <h1 className="text-6xl md:text-7xl font-thin font-outfit text-[#442D1C] tracking-[0.1em] drop-shadow-sm py-6">
+          Members
+        </h1>
+        {user?.role === 'admin' && (
+          <button
+            onClick={() => showForm ? handleFormCancel() : setShowForm(true)}
+            className={`px-8 py-4 rounded-xl font-bold font-outfit tracking-wider transition-all transform hover:scale-105 shadow-lg ${showForm ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20' : 'bg-[#84592B] text-[#442D1C] hover:bg-[#A67C52] hover:shadow-[0_0_20px_rgba(132,89,43,0.4)]'}`}
+          >
+            {showForm ? 'Cancel' : '+ Add Member'}
+          </button>
+        )}
       </div>
 
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-6 slide-in-up">
-          <h3 className="text-xl font-semibold mb-4">Add New Member</h3>
+        <div className="bg-[#442D1C] p-10 rounded-3xl shadow-2xl mb-12 slide-in-up relative overflow-hidden border border-white/5">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+          
+          <h3 className="font-thin text-4xl mb-8 text-white font-outfit tracking-widest uppercase">Add New Member</h3>
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border-l-4 border-red-500 text-red-700 rounded">
+            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-200 rounded-xl text-sm backdrop-blur-sm">
               {error}
             </div>
           )}
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold mb-2">Name *</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Name *</label>
                 <input
                   type="text"
                   required
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-[#84592B]/50 focus:border-[#84592B]/50 transition-all"
                   placeholder="Full name"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Email</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Email</label>
                 <input
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-[#84592B]/50 focus:border-[#84592B]/50 transition-all"
                   placeholder="email@example.com"
                 />
               </div>
             </div>
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-semibold mb-2">Phone</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Phone</label>
                 <input
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-[#84592B]/50 focus:border-[#84592B]/50 transition-all"
                   placeholder="Phone number"
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Status</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Status</label>
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+                  className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-[#84592B]/50 focus:border-[#84592B]/50 transition-all"
                 >
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="suspended">Suspended</option>
+                  <option value="active" className="bg-[#442D1C]">Active</option>
+                  <option value="inactive" className="bg-[#442D1C]">Inactive</option>
+                  <option value="suspended" className="bg-[#442D1C]">Suspended</option>
                 </select>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2">Address</label>
+              <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Address</label>
               <textarea
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 rows="2"
-                className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-[#84592B]/50 focus:border-[#84592B]/50 transition-all"
                 placeholder="Street address"
               />
             </div>
@@ -316,11 +328,10 @@ export default function Members() {
                     Click the button below to automatically create all mini clubs shown on the home page, or go to Clubs & Committees page to create them manually.
                   </p>
                   {clubError && (
-                    <div className={`mb-3 p-2 border rounded text-xs ${
-                      clubError.includes('already exist') 
-                        ? 'bg-green-50 border-green-200 text-green-700' 
-                        : 'bg-red-50 border-red-200 text-red-700'
-                    }`}>
+                    <div className={`mb-3 p-2 border rounded text-xs ${clubError.includes('already exist')
+                      ? 'bg-green-50 border-green-200 text-green-700'
+                      : 'bg-red-50 border-red-200 text-red-700'
+                      }`}>
                       {clubError}
                     </div>
                   )}
@@ -329,19 +340,19 @@ export default function Members() {
                     onClick={createMissingClubs}
                     disabled={creatingClubs}
                     className="px-4 py-2 text-white rounded-lg text-sm font-semibold hover:shadow-md transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ background: 'linear-gradient(135deg, #800020 0%, #A0002A 50%, #C9A961 100%)' }}
+                    style={{ background: 'linear-gradient(135deg, #442D1C 0%, #5D3E26 50%, #C9A961 100%)' }}
                   >
                     {creatingClubs ? 'Creating Clubs...' : 'Create Mini Clubs Automatically'}
                   </button>
                 </div>
               ) : (
-                <div className="club-grid" style={{ padding: '20px', background: 'rgba(245, 245, 220, 0.3)', borderRadius: '16px', border: '1px solid rgba(128, 0, 32, 0.1)' }}>
+                <div className="club-grid" style={{ padding: '20px', background: 'rgba(245, 245, 220, 0.3)', borderRadius: '16px', border: '1px solid rgba(68, 45, 28, 0.1)' }}>
                   {committees.map((club) => {
                     const isSelected = selectedClubs.includes(club._id)
                     const clubColor = clubColors[club.name] || 'from-amber-500 to-amber-600'
                     const clubIcon = clubIcons[club.name] || '🏢'
                     const clubDescription = clubDescriptions[club.name] || ''
-                    
+
                     return (
                       <label
                         key={club._id}
@@ -386,7 +397,7 @@ export default function Members() {
             <button
               type="submit"
               className="w-full text-white p-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all transform hover:scale-[1.02]"
-              style={{ background: 'linear-gradient(135deg, #800020 0%, #A0002A 50%, #C9A961 100%)' }}
+              style={{ background: 'linear-gradient(135deg, #442D1C 0%, #5D3E26 50%, #C9A961 100%)' }}
             >
               Create Member
             </button>
@@ -395,14 +406,22 @@ export default function Members() {
       )}
 
       {loading ? (
-        <div className="text-center py-8">Loading members...</div>
-      ) : list.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg shadow-lg">
-          <p className="text-gray-500 text-lg mb-4">No members found. Add your first member to get started!</p>
+        <div className="text-center py-20 text-white/50 animate-pulse font-outfit tracking-widest uppercase">Loading members...</div>
+      ) : !list || list.length === 0 ? (
+        <div className="text-center py-24 bg-[#442D1C] rounded-3xl shadow-2xl relative overflow-hidden border border-white/5">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50" />
+          <div className="relative z-10">
+            <div className="text-6xl mb-6 opacity-20">👥</div>
+            <p className="text-white text-2xl font-thin font-outfit tracking-wider mb-2">No members found</p>
+            <p className="text-white/40 text-sm">Add your first member to get started!</p>
+          </div>
         </div>
       ) : (
         <div className="member-list">
-          {list.map((m) => <MemberCard key={m._id} member={m} />)}
+          {Array.isArray(list) ? list.map((m) => {
+            if (!m) return null;
+            return <MemberCard key={m._id} member={m} />
+          }) : <div className="text-red-500">Error: List is not an array ({typeof list})</div>}
         </div>
       )}
     </div>

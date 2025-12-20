@@ -5,6 +5,8 @@ const CommitteeSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     description: { type: String },
+    fee: { type: Number, default: 0 },
+    location: { type: String },
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Member' }]
   },
   { timestamps: true }

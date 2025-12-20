@@ -16,6 +16,7 @@ const memberRoutes = require('./routes/memberRoutes')
 const eventRoutes = require('./routes/eventRoutes')
 const committeeRoutes = require('./routes/committeeRoutes')
 const locationRoutes = require('./routes/locationRoutes')
+
 const paymentRoutes = require('./routes/paymentRoutes')
 const announcementRoutes = require('./routes/announcementRoutes')
 
@@ -36,7 +37,25 @@ const io = require('socket.io')(server, {
 })
 
 // Connect DB
-connectDB()
+connectDB().then(async () => {
+  // Run seeding scripts after successful DB connection
+  const seedCozyEvents = require('./scripts/seedCozyEvents');
+  const seedCreativeEvents = require('./scripts/seedCreativeEvents');
+  const seedAcademicEvents = require('./scripts/seedAcademicEvents');
+  const seedSocialEvents = require('./scripts/seedSocialEvents');
+  const seedTechEvents = require('./scripts/seedTechEvents');
+  const seedMentalHealthEvents = require('./scripts/seedMentalHealthEvents');
+  const seedLocations = require('./scripts/seedLocations');
+
+  await seedCozyEvents();
+  await seedCreativeEvents();
+  await seedAcademicEvents();
+  await seedSocialEvents();
+  await seedTechEvents();
+  await seedMentalHealthEvents();
+  await seedLocations();
+
+});
 
 // Middleware
 app.use(helmet({
@@ -105,8 +124,10 @@ app.use('/api/members', memberRoutes)
 app.use('/api/events', eventRoutes)
 app.use('/api/committees', committeeRoutes)
 app.use('/api/locations', locationRoutes)
+
 app.use('/api/payments', paymentRoutes)
 app.use('/api/announcements', announcementRoutes)
+
 
 
 // static upload folder
@@ -127,6 +148,17 @@ app.get('/api/health', (req, res) => {
 app.use((req, res) => {
   res.status(404).json({ message: 'Route not found' })
 })
+
+// DEBUG: Expose seed log
+const fs = require('fs');
+app.get('/api/debug-log', (req, res) => {
+  try {
+    const logContent = fs.readFileSync(path.join(__dirname, 'seed.log'), 'utf8');
+    res.send(logContent);
+  } catch (e) {
+    res.status(500).send('Error reading log: ' + e.message);
+  }
+});
 
 // Error handler (must be last)
 app.use(errorHandler)

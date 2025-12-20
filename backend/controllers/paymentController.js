@@ -1,15 +1,29 @@
 // controllers/paymentController.js
 const Payment = require('../models/Payment')
 const Member = require('../models/Member')
+const mongoose = require('mongoose')
 
 exports.listPayments = async (req, res, next) => {
     try {
         const { memberId, status, paymentType, startDate, endDate } = req.query
         const filter = {}
-        if (memberId) filter.member = memberId
+
+        // RBAC: If not admin, restrict to own member ID
+        if (req.user.role !== 'admin') {
+            // Find member profile by email
+            const memberProfile = await Member.findOne({ email: req.user.email })
+            if (!memberProfile) {
+                // If user has no member profile, they have no payments
+                return res.json({ payments: [] })
+            }
+            filter.member = memberProfile._id
+        } else {
+            // Admin can filter by any memberId
+            if (memberId) filter.member = memberId
+        }
+
         if (status) filter.status = status
-        if (paymentType) filter.type = paymentType // Frontend sends 'paymentType', model uses 'type'? Check model.
-        // Model uses 'type'. Frontend filters send 'paymentType'.
+        if (paymentType) filter.type = paymentType
         if (startDate || endDate) {
             filter.date = {}
             if (startDate) filter.date.$gte = new Date(startDate)
@@ -17,9 +31,7 @@ exports.listPayments = async (req, res, next) => {
         }
 
         const payments = await Payment.find(filter).populate('member', 'name').sort({ date: -1 })
-        res.json({ payments }) // Frontend expects object { payments: [] }? Let's check frontend.
-        // Frontend: const { data } = await paymentsAPI.list(filters); setPayments(data.payments || [])
-        // So yes, res.json({ payments })
+        res.json({ payments })
     } catch (err) {
         next(err)
     }
@@ -56,10 +68,56 @@ exports.getPayment = async (req, res, next) => {
     }
 }
 
+exports.updatePayment = async (req, res, next) => {
+    try {
+        let payment = await Payment.findById(req.params.id)
+        if (!payment) return res.status(404).json({ message: 'Payment not found' })
+
+        // Check Permissions
+        if (req.user.role !== 'admin') {
+            const memberProfile = await Member.findOne({ email: req.user.email })
+            if (!memberProfile || !payment.member.equals(memberProfile._id)) {
+                return res.status(403).json({ message: 'Not authorized to update this payment' })
+            }
+        }
+
+        // Perform Update
+        payment = await Payment.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        ).populate('member', 'name')
+
+        // If payment is newly completed and represents dues, update member fees
+        if (payment.status === 'completed' && payment.type === 'dues') {
+            await Member.findByIdAndUpdate(payment.member._id, { $inc: { feesDue: -payment.amount } })
+        }
+
+        res.json(payment)
+    } catch (err) {
+        next(err)
+    }
+}
+
 exports.getPaymentStats = async (req, res, next) => {
     try {
-        const { startDate, endDate } = req.query
+        const { startDate, endDate, memberId } = req.query
         const match = {}
+
+        // RBAC: If not admin, restrict to own member ID
+        if (req.user.role !== 'admin') {
+            const memberProfile = await Member.findOne({ email: req.user.email })
+            if (!memberProfile) {
+                return res.json({
+                    overall: { totalAmount: 0, totalCount: 0, avgAmount: 0 },
+                    byType: []
+                })
+            }
+            match.member = memberProfile._id
+        } else {
+            if (memberId) match.member = mongoose.Types.ObjectId(memberId)
+        }
+
         if (startDate || endDate) {
             match.date = {}
             if (startDate) match.date.$gte = new Date(startDate)

@@ -17,7 +17,7 @@ const memberSlice = createSlice({
       })
       .addCase(fetchMembers.fulfilled, (state, action) => {
         state.loading = false
-        state.list = action.payload.members || action.payload
+        state.list = action.payload.members || action.payload || []
       })
       .addCase(fetchMembers.rejected, (state, action) => {
         state.loading = false

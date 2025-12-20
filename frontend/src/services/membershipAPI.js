@@ -1,5 +1,15 @@
 import api from './api'
 
+export const authAPI = {
+  login: (credentials) => api.post('/auth/login', credentials),
+  register: (payload) => api.post('/auth/register', payload),
+  logout: () => api.post('/auth/logout'),
+  me: () => api.get('/auth/me'),
+  verifyEmail: (payload) => api.post('/auth/verify-email', payload),
+  forgotPassword: (payload) => api.post('/auth/forgot-password', payload),
+  resetPassword: (payload) => api.post('/auth/reset-password', payload)
+}
+
 export const membersAPI = {
   list: (params) => api.get('/members', { params }),
   get: (id) => api.get(`/members/${id}`),
@@ -38,6 +48,7 @@ export const paymentsAPI = {
   list: (params) => api.get('/payments', { params }),
   get: (id) => api.get(`/payments/${id}`),
   create: (payload) => api.post('/payments', payload),
+  update: (id, payload) => api.put(`/payments/${id}`, payload),
   getStats: (params) => api.get('/payments/stats', { params })
 }
 

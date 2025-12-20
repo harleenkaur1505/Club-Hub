@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { announcementsAPI, membersAPI, committeesAPI } from '../services/membershipAPI'
 import dayjs from 'dayjs'
+import { useAuth } from '../hooks/useAuth'
 
 export default function Announcements() {
+  const { user } = useAuth()
   const [announcements, setAnnouncements] = useState([])
   const [members, setMembers] = useState([])
   const [committees, setCommittees] = useState([])
   const [loading, setLoading] = useState(true)
+
+
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
@@ -80,54 +84,58 @@ export default function Announcements() {
     }
   }
 
-  if (loading) return <div className="text-center py-8">Loading announcements...</div>
+  if (loading) return <div className="text-center py-20 text-[#442D1C]/50 animate-pulse font-outfit tracking-widest uppercase">Loading announcements...</div>
 
   return (
     <div className="fade-in">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-3xl font-semibold gradient-text">Member Communications</h2>
-        <button
-          onClick={() => setShowForm(!showForm)}
-          className="px-6 py-3 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
-          style={{ background: 'linear-gradient(135deg, #800020 0%, #A0002A 50%, #C9A961 100%)' }}
-        >
-          {showForm ? 'Cancel' : '+ New Announcement'}
-        </button>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-12">
+        <h1 className="text-4xl md:text-6xl font-thin font-outfit text-[#442D1C] tracking-[0.1em] drop-shadow-sm py-6 text-center md:text-left leading-tight">
+          Member<br />Communications
+        </h1>
+        {user?.role === 'admin' && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className={`px-8 py-4 rounded-xl font-bold font-outfit tracking-wider transition-all transform hover:scale-105 shadow-lg ${showForm ? 'bg-[#442D1C]/20 text-[#442D1C] border border-[#442D1C]/20 hover:bg-[#442D1C]/30' : 'bg-[#442D1C] text-white hover:bg-[#5D3E26] hover:shadow-[0_0_20px_rgba(68,45,28,0.4)]'}`}
+          >
+            {showForm ? 'Cancel' : '+ New Announcement'}
+          </button>
+        )}
       </div>
 
       {showForm && (
-        <div className="bg-white p-6 rounded-lg shadow-lg mb-6 slide-in-up">
-          <h3 className="text-xl font-semibold mb-4">Create Announcement</h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="bg-[#442D1C] p-10 rounded-3xl shadow-2xl mb-12 slide-in-up relative overflow-hidden border border-white/5">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
+          <h3 className="font-thin text-4xl mb-8 text-white font-outfit tracking-widest uppercase">Create Announcement</h3>
+          <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
             <div>
-              <label className="block text-sm font-semibold mb-2">Title *</label>
+              <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Title *</label>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500"
+                className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
                 placeholder="Announcement title"
               />
             </div>
             <div>
-              <label className="block text-sm font-semibold mb-2">Message *</label>
+              <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Message *</label>
               <textarea
                 required
                 rows="5"
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500"
+                className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
                 placeholder="Enter your message here..."
               />
             </div>
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-3 gap-6">
               <div>
-                <label className="block text-sm font-semibold mb-2">Type</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Type</label>
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500"
+                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
                 >
                   <option value="general">General</option>
                   <option value="event">Event</option>
@@ -137,11 +145,11 @@ export default function Announcements() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Priority</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Priority</label>
                 <select
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500"
+                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
                 >
                   <option value="low">Low</option>
                   <option value="normal">Normal</option>
@@ -150,11 +158,11 @@ export default function Announcements() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Target Audience</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Target Audience</label>
                 <select
                   value={formData.targetAudience}
                   onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500"
+                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
                 >
                   <option value="all">All Members</option>
                   <option value="active_members">Active Members Only</option>
@@ -165,149 +173,160 @@ export default function Announcements() {
             </div>
             {formData.targetAudience === 'specific' && (
               <div>
-                <label className="block text-sm font-semibold mb-2">Select Members</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Select Members</label>
                 <select
                   multiple
                   value={formData.targetMembers}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
+                  onChange={(e) => setFormData({
+                    ...formData,
                     targetMembers: Array.from(e.target.selectedOptions, option => option.value)
                   })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500"
-                  size="5"
+                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all h-32"
                 >
                   {members.map(m => (
                     <option key={m._id} value={m._id}>{m.name}</option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                <p className="text-xs text-white/40 mt-1">Hold Ctrl/Cmd to select multiple</p>
               </div>
             )}
             {formData.targetAudience === 'committees' && (
               <div>
-                <label className="block text-sm font-semibold mb-2">Select Committees</label>
+                <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Select Committees</label>
                 <select
                   multiple
                   value={formData.targetCommittees}
-                  onChange={(e) => setFormData({ 
-                    ...formData, 
+                  onChange={(e) => setFormData({
+                    ...formData,
                     targetCommittees: Array.from(e.target.selectedOptions, option => option.value)
                   })}
-                  className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500"
-                  size="5"
+                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all h-32"
                 >
                   {committees.map(c => (
                     <option key={c._id} value={c._id}>{c.name}</option>
                   ))}
                 </select>
-                <p className="text-xs text-gray-500 mt-1">Hold Ctrl/Cmd to select multiple</p>
+                <p className="text-xs text-white/40 mt-1">Hold Ctrl/Cmd to select multiple</p>
               </div>
             )}
             <div>
-              <label className="block text-sm font-semibold mb-2">Expiration Date (Optional)</label>
+              <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Expiration Date (Optional)</label>
               <input
-                type="datetime-local"
+                type="date"
                 value={formData.expiresAt}
                 onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                className="w-full border-2 border-gray-200 rounded-xl p-3 focus:border-primary-500"
+                className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
               />
             </div>
-            <div className="flex gap-4">
-              <label className="flex items-center">
+            <div className="flex gap-6">
+              <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
                   checked={formData.sendEmail}
                   onChange={(e) => setFormData({ ...formData, sendEmail: e.target.checked })}
-                  className="mr-2"
+                  className="w-5 h-5 rounded border-[#C9A961] text-[#C9A961] focus:ring-[#C9A961]"
                 />
-                <span className="text-sm">Send Email Notification</span>
+                <span className="text-sm text-white/80 group-hover:text-white transition-colors">Send Email Notification</span>
               </label>
-              <label className="flex items-center">
+              <label className="flex items-center gap-2 cursor-pointer group">
                 <input
                   type="checkbox"
                   checked={formData.sendSMS}
                   onChange={(e) => setFormData({ ...formData, sendSMS: e.target.checked })}
-                  className="mr-2"
+                  className="w-5 h-5 rounded border-[#C9A961] text-[#C9A961] focus:ring-[#C9A961]"
                 />
-                <span className="text-sm">Send SMS Notification</span>
+                <span className="text-sm text-white/80 group-hover:text-white transition-colors">Send SMS Notification</span>
               </label>
             </div>
             <button
               type="submit"
-              className="w-full text-white p-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all"
-              style={{ background: 'linear-gradient(135deg, #800020 0%, #A0002A 50%, #C9A961 100%)' }}
+              className="w-full text-[#442D1C] p-4 rounded-xl font-bold text-lg shadow-[0_4px_14px_0_rgba(193,161,96,0.39)] hover:shadow-[0_6px_20px_rgba(193,161,96,0.23)] hover:-translate-y-0.5 transition-all duration-200 mt-4 relative overflow-hidden group"
+              style={{
+                background: 'linear-gradient(135deg, #E6D08E 0%, #C9A961 100%)'
+              }}
             >
-              Create Announcement
+              <span className="relative z-10">Create Announcement</span>
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             </button>
           </form>
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-6">
         {announcements.map((announcement) => (
-          <div 
-            key={announcement._id} 
-            className="bg-white p-6 rounded-lg shadow-lg slide-in-up border-l-4"
+          <div
+            key={announcement._id}
+            className="backdrop-blur-md p-8 rounded-3xl shadow-lg slide-in-up border border-white/10 relative overflow-hidden group transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl"
             style={{
-              borderLeftColor: announcement.priority === 'urgent' ? '#ef4444' :
-                              announcement.priority === 'high' ? '#eab308' :
-                              announcement.priority === 'normal' ? '#800020' :
-                              '#d1d5db'
+              background: 'rgba(68, 45, 28, 0.4)',
+              borderLeft: `6px solid ${announcement.priority === 'urgent' ? '#ef4444' :
+                announcement.priority === 'high' ? '#eab308' :
+                  '#C9A961'
+                }`
             }}
           >
-            <div className="flex justify-between items-start mb-3">
+            <div className="flex flex-col md:flex-row justify-between items-start gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-xl font-semibold">{announcement.title}</h3>
-                  <span className="px-3 py-1 rounded-full text-xs font-medium"
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <h3 className="text-2xl font-bold text-white font-outfit tracking-wide">{announcement.title}</h3>
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border"
                     style={{
-                      backgroundColor: announcement.type === 'urgent' ? '#fee2e2' :
-                                      announcement.type === 'event' ? 'rgba(128, 0, 32, 0.1)' :
-                                      announcement.type === 'dues' ? '#dcfce7' :
-                                      '#f3f4f6',
-                      color: announcement.type === 'urgent' ? '#b91c1c' :
-                            announcement.type === 'event' ? '#800020' :
-                            announcement.type === 'dues' ? '#166534' :
-                            '#374151'
+                      backgroundColor: announcement.type === 'urgent' ? 'rgba(239, 68, 68, 0.2)' :
+                        announcement.type === 'event' ? 'rgba(201, 169, 97, 0.2)' :
+                          'rgba(255, 255, 255, 0.1)',
+                      borderColor: announcement.type === 'urgent' ? 'rgba(239, 68, 68, 0.5)' :
+                        announcement.type === 'event' ? 'rgba(201, 169, 97, 0.5)' :
+                          'rgba(255, 255, 255, 0.2)',
+                      color: announcement.type === 'urgent' ? '#fca5a5' :
+                        announcement.type === 'event' ? '#E6D08E' :
+                          '#e5e7eb'
                     }}>
                     {announcement.type}
                   </span>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    announcement.priority === 'urgent' ? 'bg-red-100 text-red-700' :
-                    announcement.priority === 'high' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border ${announcement.priority === 'urgent' ? 'bg-red-500/20 border-red-500/50 text-red-300' :
+                    announcement.priority === 'high' ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300' :
+                      'bg-white/10 border-white/20 text-gray-300'
+                    }`}>
                     {announcement.priority}
                   </span>
                 </div>
-                <p className="text-gray-700 mb-3 whitespace-pre-wrap">{announcement.message}</p>
-                <div className="flex flex-wrap gap-4 text-sm text-gray-500">
-                  <span>📅 {dayjs(announcement.createdAt).format('MMM D, YYYY h:mm A')}</span>
-                  <span>👤 {announcement.createdBy?.name || 'Admin'}</span>
-                  <span>👁️ {announcement.readBy?.length || 0} reads</span>
+
+                <p className="text-white/80 mb-6 whitespace-pre-wrap leading-relaxed text-lg font-light">{announcement.message}</p>
+
+                <div className="flex flex-wrap gap-6 text-sm text-white/40 font-mono">
+                  <span className="flex items-center gap-2">📅 {dayjs(announcement.createdAt).format('MMM D, YYYY h:mm A')}</span>
+                  <span className="flex items-center gap-2">👤 {announcement.createdBy?.name || 'Admin'}</span>
+                  <span className="flex items-center gap-2">👁️ {announcement.readBy?.length || 0} reads</span>
                   {announcement.expiresAt && (
-                    <span>⏰ Expires: {dayjs(announcement.expiresAt).format('MMM D, YYYY')}</span>
+                    <span className="flex items-center gap-2 text-yellow-500/70">⏰ Expires: {dayjs(announcement.expiresAt).format('MMM D, YYYY')}</span>
                   )}
                 </div>
               </div>
-              <button
-                onClick={() => toggleAnnouncementStatus(announcement._id, announcement.isActive)}
-                className={`px-4 py-2 rounded-lg font-semibold text-sm transition-all ${
-                  announcement.isActive
-                    ? 'bg-yellow-500 text-white hover:bg-yellow-600'
-                    : 'bg-green-500 text-white hover:bg-green-600'
-                }`}
-              >
-                {announcement.isActive ? 'Deactivate' : 'Activate'}
-              </button>
+
+              {user?.role === 'admin' && (
+                <button
+                  onClick={() => toggleAnnouncementStatus(announcement._id, announcement.isActive)}
+                  className={`px-4 py-2 rounded-lg font-semibold text-xs uppercase tracking-wider transition-all border ${announcement.isActive
+                    ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/20'
+                    : 'bg-green-500/10 text-green-500 border-green-500/50 hover:bg-green-500/20'
+                    }`}
+                >
+                  {announcement.isActive ? 'Deactivate' : 'Activate'}
+                </button>
+              )}
             </div>
           </div>
         ))}
       </div>
 
       {announcements.length === 0 && (
-        <div className="text-center py-12 bg-white rounded-lg shadow-lg">
-          <p className="text-gray-500 text-lg">No announcements found. Create your first announcement to communicate with members!</p>
+        <div className="text-center py-24 bg-[#442D1C] rounded-3xl shadow-2xl relative overflow-hidden border border-white/5 mx-auto max-w-4xl">
+          <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-50" />
+          <div className="relative z-10">
+            <div className="text-6xl mb-6 opacity-20">📢</div>
+            <p className="text-white text-3xl font-thin font-outfit tracking-wider mb-4">No announcements yet</p>
+            <p className="text-white/40 text-lg">Stay tuned for updates!</p>
+          </div>
         </div>
       )}
     </div>

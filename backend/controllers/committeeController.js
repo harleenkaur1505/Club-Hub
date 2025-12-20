@@ -81,6 +81,28 @@ exports.addMemberToCommittee = async (req, res, next) => {
     // Add committee to member's committees array
     if (!member.committees.includes(committeeId)) {
       member.committees.push(committeeId)
+
+      // Auto-generate payment request for club fee
+      if (committee.fee > 0) {
+        const Payment = require('../models/Payment')
+        const dueDate = new Date();
+        dueDate.setDate(dueDate.getDate() + 3);
+
+        await Payment.create({
+          member: memberId,
+          amount: committee.fee,
+          type: 'dues',
+          status: 'pending', // User needs to pay this
+          club: committee.name,
+          notes: `Membership fee for ${committee.name}`,
+          date: new Date(),
+          dueDate: dueDate
+        })
+
+        // Update member feesDue
+        member.feesDue = (member.feesDue || 0) + committee.fee
+      }
+
       await member.save()
     }
 
