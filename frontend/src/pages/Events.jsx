@@ -38,7 +38,8 @@ export default function Events() {
         {user?.role === 'admin' && (
           <Link
             to="/events/create"
-            className="px-8 py-4 bg-[#84592B] text-[#442D1C] rounded-xl font-bold font-outfit tracking-wider shadow-lg hover:bg-[#A67C52] hover:shadow-[0_0_20px_rgba(132,89,43,0.4)] transition-all transform hover:scale-105 inline-block text-center"
+            className="px-8 py-4 bg-[#442D1C] text-white rounded-xl font-bold font-outfit tracking-wider shadow-lg hover:bg-[#5D3E26] hover:shadow-[0_0_20px_rgba(68,45,28,0.4)] transition-all transform hover:scale-105 inline-block text-center"
+
           >
             + Create Event
           </Link>

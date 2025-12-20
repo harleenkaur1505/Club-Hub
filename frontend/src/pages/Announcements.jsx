@@ -258,7 +258,7 @@ export default function Announcements() {
             key={announcement._id}
             className="backdrop-blur-md p-8 rounded-3xl shadow-lg slide-in-up border border-white/10 relative overflow-hidden group transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl"
             style={{
-              background: 'rgba(68, 45, 28, 0.4)',
+              background: '#442D1C',
               borderLeft: `6px solid ${announcement.priority === 'urgent' ? '#ef4444' :
                 announcement.priority === 'high' ? '#eab308' :
                   '#C9A961'

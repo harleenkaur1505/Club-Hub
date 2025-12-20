@@ -105,7 +105,8 @@ export default function Payments() {
         {user?.role === 'admin' && (
           <button
             onClick={() => setShowForm(!showForm)}
-            className={`px-8 py-4 rounded-xl font-bold font-outfit tracking-wider transition-all transform hover:scale-105 shadow-lg ${showForm ? 'bg-[#84592B]/20 text-[#442D1C] border border-[#84592B]/20 hover:bg-[#84592B]/30' : 'bg-[#84592B] text-[#442D1C] hover:bg-[#A67C52] hover:shadow-[0_0_20px_rgba(132,89,43,0.4)]'}`}
+            className={`px-8 py-4 rounded-xl font-bold font-outfit tracking-wider transition-all transform hover:scale-105 shadow-lg ${showForm ? 'bg-[#442D1C]/20 text-[#442D1C] border border-[#442D1C]/20 hover:bg-[#442D1C]/30' : 'bg-[#442D1C] text-white hover:bg-[#5D3E26] hover:shadow-[0_0_20px_rgba(68,45,28,0.4)]'}`}
+
           >
             {showForm ? 'Cancel' : '+ Record Payment'}
           </button>
@@ -118,26 +119,26 @@ export default function Payments() {
         <>
           {stats && (
             <div className="grid md:grid-cols-4 gap-6 mb-12">
-              <div className="bg-[#442D1C]/5 backdrop-blur-sm p-6 rounded-3xl border border-[#442D1C]/10 shadow-lg">
-                <div className="text-sm text-[#442D1C]/60 uppercase tracking-widest mb-2 font-semibold">Total Collected</div>
-                <div className="text-3xl font-bold text-[#442D1C] font-outfit">
+              <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
+                <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Total Collected</div>
+                <div className="text-3xl font-bold text-white font-outfit">
                   ₹{stats.overall?.totalAmount?.toFixed(2) || '0.00'}
                 </div>
               </div>
-              <div className="bg-[#442D1C]/5 backdrop-blur-sm p-6 rounded-3xl border border-[#442D1C]/10 shadow-lg">
-                <div className="text-sm text-[#442D1C]/60 uppercase tracking-widest mb-2 font-semibold">Total Payments</div>
-                <div className="text-3xl font-bold text-[#442D1C] font-outfit">{stats.overall?.totalCount || 0}</div>
+              <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
+                <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Total Payments</div>
+                <div className="text-3xl font-bold text-white font-outfit">{stats.overall?.totalCount || 0}</div>
               </div>
-              <div className="bg-[#442D1C]/5 backdrop-blur-sm p-6 rounded-3xl border border-[#442D1C]/10 shadow-lg">
-                <div className="text-sm text-[#442D1C]/60 uppercase tracking-widest mb-2 font-semibold">Avg. Payment</div>
-                <div className="text-3xl font-bold text-[#442D1C] font-outfit">
+              <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
+                <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Avg. Payment</div>
+                <div className="text-3xl font-bold text-white font-outfit">
                   ₹{stats.overall?.avgAmount?.toFixed(2) || '0.00'}
                 </div>
               </div>
-              <div className="bg-[#442D1C]/5 backdrop-blur-sm p-6 rounded-3xl border border-[#442D1C]/10 shadow-lg relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#E6D08E]/20 to-transparent pointer-events-none" />
-                <div className="text-sm text-[#442D1C]/60 uppercase tracking-widest mb-2 font-semibold relative z-10">Dues Collected</div>
-                <div className="text-3xl font-bold text-[#84592B] font-outfit relative z-10">
+              <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#E6D08E]/10 to-transparent pointer-events-none" />
+                <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold relative z-10">Dues Collected</div>
+                <div className="text-3xl font-bold text-[#E6D08E] font-outfit relative z-10">
                   ₹{stats.byType?.find(s => s._id === 'dues')?.total?.toFixed(2) || '0.00'}
                 </div>
               </div>
@@ -322,7 +323,9 @@ export default function Payments() {
                       {payment.paymentType === 'dues' ? '📅' : payment.paymentType === 'donation' ? '🎁' : '🎫'}
                     </div>
                     <div>
-                      <h4 className="text-white font-outfit font-semibold text-lg">{payment.member?.name || 'Unknown Member'}</h4>
+                      <h4 className="text-white font-outfit font-semibold text-lg">
+                        {user?.role === 'admin' ? (payment.member?.name || 'Unknown Member') : 'Club Member'}
+                      </h4>
                       <p className="text-white/50 text-sm capitalize">{payment.paymentType} • {payment.paymentMethod}</p>
                     </div>
                   </div>

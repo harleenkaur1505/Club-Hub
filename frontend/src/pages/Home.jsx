@@ -56,7 +56,7 @@ export default function Home() {
 
   useEffect(() => {
     loadClubs()
-    
+
     // Intersection Observer for scroll animations
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -90,11 +90,11 @@ export default function Home() {
   }
 
   return (
-    <div className="fade-in">
+    <div className="fade-in bg-[#DECFAC] min-h-screen">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-20">
         <div className="text-center mb-16 px-4">
           <h1 className="text-6xl md:text-7xl font-thin font-outfit mb-8 text-[#442D1C] tracking-[0.2em] leading-tight drop-shadow-sm py-6">
-            Welcome to <span className="font-normal text-[#442D1C]">the Club</span>
+            Welcome to <span className="font-normal text-[#442D1C]">the ClubHub</span>
           </h1>
           <p className="text-2xl md:text-3xl mb-8 leading-relaxed max-w-3xl mx-auto font-medium text-[#442D1C]">
             Manage members, collect dues, plan events and coordinate committees easily with our cozy platform.

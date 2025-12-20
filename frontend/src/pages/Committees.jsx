@@ -343,32 +343,32 @@ export default function Committees({ view = 'all' }) {
           {view === 'club' ? 'Clubs' : view === 'committee' ? 'Committees' : 'Clubs & Committees'}
         </h1>
         <p className="text-xl md:text-2xl text-[#442D1C]/70 italic font-light tracking-wide">
-          {view === 'club' 
-            ? 'Discover and join our featured mini-clubs' 
-            : view === 'committee' 
-              ? 'Organizational groups managing club functions' 
+          {view === 'club'
+            ? 'Discover and join our featured mini-clubs'
+            : view === 'committee'
+              ? 'Organizational groups managing club functions'
               : 'Explore our clubs and organizational committees'}
         </p>
       </div>
       <div className="flex justify-end mb-6">
-          {view !== 'club' && user?.role === 'admin' && (
-            <button
-              onClick={() => {
-                setFormType(view === 'club' ? 'club' : 'committee')
-                setShowForm(!showForm)
-                setError(null)
-              }}
-              className={`px-8 py-4 rounded-xl font-bold font-outfit tracking-wider transition-all transform hover:scale-105 shadow-lg ${showForm && formType === 'committee' ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20' : 'bg-[#84592B] text-[#442D1C] hover:bg-[#A67C52] hover:shadow-[0_0_20px_rgba(132,89,43,0.4)]'}`}
-            >
-              {showForm && formType === 'committee' ? 'Cancel' : '+ Add Committee'}
-            </button>
-          )}
-        </div>
+        {view !== 'club' && user?.role === 'admin' && (
+          <button
+            onClick={() => {
+              setFormType(view === 'club' ? 'club' : 'committee')
+              setShowForm(!showForm)
+              setError(null)
+            }}
+            className={`px-8 py-4 rounded-xl font-bold font-outfit tracking-wider transition-all transform hover:scale-105 shadow-lg ${showForm && formType === 'committee' ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20' : 'bg-[#442D1C] text-white hover:bg-[#5D3E26] hover:shadow-[0_0_20px_rgba(68,45,28,0.4)]'}`}
+          >
+            {showForm && formType === 'committee' ? 'Cancel' : '+ Add Committee'}
+          </button>
+        )}
+      </div>
 
       {showForm && (
         <div className="bg-[#442D1C] p-10 rounded-3xl shadow-2xl mb-12 slide-in-up relative overflow-hidden border border-white/5">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-          
+
           <h3 className="font-thin text-4xl mb-8 text-white font-outfit tracking-widest uppercase">
             {formType === 'committee' ? 'Add New Committee' : 'Add New Club'}
           </h3>
@@ -437,7 +437,7 @@ export default function Committees({ view = 'all' }) {
               <div className="flex items-center justify-between mb-6">
                 <div>
                   {view !== 'club' && <h3 className="text-4xl font-thin font-outfit mb-8 text-[#442D1C] tracking-widest uppercase">Clubs</h3>}
-  
+
 
                 </div>
               </div>
@@ -537,7 +537,7 @@ export default function Committees({ view = 'all' }) {
               <div className="text-left mb-8">
                 <div>
                   {view === 'all' && <h3 className="text-4xl font-thin font-outfit mb-8 text-[#442D1C] tracking-widest uppercase">Committees</h3>}
-                 
+
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

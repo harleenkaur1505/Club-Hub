@@ -12,7 +12,7 @@
 :root {
   --primary-accent: #442D1C;
   --secondary-accent: #5D3E26;
-  --bg-main: #84592B;
+  --bg-main: #DECFAC;
   --text-main: #442D1C;
   --glass-bg: rgba(68, 45, 28, 0.1);
   --glass-border: rgba(68, 45, 28, 0.2);
@@ -27,7 +27,7 @@
 
 body {
   font-family: 'Outfit', 'Inter', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-  background-color: #84592B;
+  background-color: #DECFAC;
   color: #442D1C;
   min-height: 100vh;
   position: relative;
@@ -43,7 +43,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     radial-gradient(circle at 50% 0%, rgba(68, 45, 28, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 100% 0%, rgba(68, 45, 28, 0.05) 0%, transparent 50%);
   pointer-events: none;
@@ -114,8 +114,15 @@ html {
 
 /* Floating animation */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 .float-animation {
@@ -124,8 +131,15 @@ html {
 
 /* Pulse animation */
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(68, 45, 28, 0.4); }
-  50% { box-shadow: 0 0 40px rgba(68, 45, 28, 0.8); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(68, 45, 28, 0.4);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(68, 45, 28, 0.8);
+  }
 }
 
 .pulse-glow {
@@ -138,6 +152,7 @@ html {
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -150,8 +165,13 @@ html {
 
 /* Fade in animation */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .fade-in {
@@ -160,17 +180,20 @@ html {
 
 /* Shimmer effect */
 @keyframes shimmer {
-  0% { background-position: -1000px 0; }
-  100% { background-position: 1000px 0; }
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
 }
 
 .shimmer {
-  background: linear-gradient(
-    90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.2) 50%,
-    rgba(255, 255, 255, 0) 100%
-  );
+  background: linear-gradient(90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0) 100%);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite;
 }
@@ -181,12 +204,14 @@ html {
   opacity: 1 !important;
   transform: translateY(0) !important;
 }
+
 /* Zoom in animation */
 @keyframes zoomIn {
   from {
     opacity: 0;
     transform: scale(0.9) translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: scale(1) translateY(0);
@@ -199,8 +224,15 @@ html {
 
 /* Backdrop Fade */
 @keyframes backdropFade {
-  from { opacity: 0; backdrop-filter: blur(0px); }
-  to { opacity: 1; backdrop-filter: blur(12px); }
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+
+  to {
+    opacity: 1;
+    backdrop-filter: blur(12px);
+  }
 }
 
 .backdrop-fade {
@@ -209,11 +241,11 @@ html {
 
 /* Autofill styles override */
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
-input:-webkit-autofill:active{
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: #ffffff;
-    transition: background-color 5000s ease-in-out 0s;
-    box-shadow: inset 0 0 20px 20px transparent !important;
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: #ffffff;
+  transition: background-color 5000s ease-in-out 0s;
+  box-shadow: inset 0 0 20px 20px transparent !important;
 }
