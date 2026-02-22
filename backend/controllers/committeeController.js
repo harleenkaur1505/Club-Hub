@@ -1,4 +1,7 @@
 // controllers/committeeController.js
+//This controller manages committees and their members.
+// It supports CRUD operations on committees and ensures proper member assignment, fee tracking, 
+// and payment generation when members join paid committees.
 const Committee = require('../models/Committee')
 const Member = require('../models/Member')
 

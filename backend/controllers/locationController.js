@@ -1,4 +1,6 @@
 // controllers/locationController.js
+//This controller manages CRUD operations for club locations and provides a 
+//seeding function to automatically populate default venues for the application.
 const Location = require('../models/Location')
 
 exports.listLocations = async (req, res, next) => {

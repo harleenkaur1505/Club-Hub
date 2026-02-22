@@ -1,4 +1,6 @@
 // middlewares/authMiddleware.js
+//This middleware protects routes using session-based authentication and
+//enforces role-based authorization by allowing only admins to access restricted actions.
 const User = require('../models/User')
 
 exports.protect = async (req, res, next) => {

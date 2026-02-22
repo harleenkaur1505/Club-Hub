@@ -1,4 +1,6 @@
 // middlewares/validateRequest.js
+//This middleware ensures that required request body fields are 
+//present before processing the request, preventing invalid or incomplete API calls.
 exports.requireBody = (fields = []) => {
   return (req, res, next) => {
     for (const f of fields) {

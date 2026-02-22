@@ -4,17 +4,22 @@ import dayjs from 'dayjs'
 export default function EventCard({ event }) {
 
   return (
-    <div className="p-4 bg-white rounded shadow event-card slide-in-up hover:shadow-xl transition-all">
-      <div className="flex justify-between items-start mb-3">
-        <h3 className="font-semibold text-lg">{event.title}</h3>
-        <span className="text-sm bg-gradient-to-r from-primary-500 to-primary-600 px-3 py-1 rounded-full text-white font-medium shadow-md">
+    <div className="backdrop-blur-md p-6 rounded-3xl shadow-lg slide-in-up border border-white/10 relative overflow-hidden group transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl bg-[#442D1C]">
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="font-bold text-xl text-white font-outfit tracking-wide">{event.title}</h3>
+        <span className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border shadow-sm"
+          style={{
+            backgroundColor: 'rgba(201, 169, 97, 0.2)',
+            borderColor: 'rgba(201, 169, 97, 0.5)',
+            color: '#E6D08E'
+          }}>
           {dayjs(event.date).format('MMM D, YYYY')}
         </span>
       </div>
-      <p className="text-sm text-gray-600 mt-2 mb-3">{event.description}</p>
-      <div className="mt-3 flex justify-between items-center">
-        <div className="text-sm text-gray-700 flex items-center gap-2">
-          <span className="font-semibold">Venue:</span>
+      <p className="text-white/80 mb-4 font-light leading-relaxed">{event.description}</p>
+      <div className="mt-auto border-t border-white/10 pt-4 flex justify-between items-center">
+        <div className="text-sm text-white/50 font-mono flex items-center gap-2">
+          <span className="text-[#E6D08E]">📍</span>
           <span>{event.venue || 'TBD'}</span>
         </div>
       </div>

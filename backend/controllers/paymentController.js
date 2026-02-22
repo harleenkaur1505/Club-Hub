@@ -1,4 +1,6 @@
 // controllers/paymentController.js
+//This controller manages payments with role-based access, ensures accurate fee tracking,
+//prevents duplicate deductions, and provides detailed payment statistics using MongoDB aggregation.
 const Payment = require('../models/Payment')
 const Member = require('../models/Member')
 const mongoose = require('mongoose')
@@ -41,14 +43,11 @@ exports.createPayment = async (req, res, next) => {
     try {
         const { member, amount, paymentType } = req.body
 
-        const payload = {
-            ...req.body,
-            type: paymentType || req.body.type // Map paymentType to type
-        }
-
+        const payload = { ...req.body }
         const payment = await Payment.create(payload)
 
-        if (payload.type === 'dues') {
+        // Only decrement dues if the payment is ALREADY completed (e.g. by admin)
+        if (payload.type === 'dues' && payload.status === 'completed') {
             await Member.findByIdAndUpdate(member, { $inc: { feesDue: -amount } })
         }
 
@@ -80,6 +79,7 @@ exports.updatePayment = async (req, res, next) => {
                 return res.status(403).json({ message: 'Not authorized to update this payment' })
             }
         }
+        const oldStatus = payment.status
 
         // Perform Update
         payment = await Payment.findByIdAndUpdate(
@@ -88,8 +88,8 @@ exports.updatePayment = async (req, res, next) => {
             { new: true, runValidators: true }
         ).populate('member', 'name')
 
-        // If payment is newly completed and represents dues, update member fees
-        if (payment.status === 'completed' && payment.type === 'dues') {
+        // Only decrement fees if it transitions FROM not-completed TO completed
+        if (payment.status === 'completed' && oldStatus !== 'completed' && payment.type === 'dues') {
             await Member.findByIdAndUpdate(payment.member._id, { $inc: { feesDue: -payment.amount } })
         }
 
@@ -109,13 +109,14 @@ exports.getPaymentStats = async (req, res, next) => {
             const memberProfile = await Member.findOne({ email: req.user.email })
             if (!memberProfile) {
                 return res.json({
-                    overall: { totalAmount: 0, totalCount: 0, avgAmount: 0 },
+                    overall: { totalAmount: 0, totalCount: 0, avgAmount: 0, pendingAmount: 0 },
                     byType: []
                 })
             }
             match.member = memberProfile._id
         } else {
-            if (memberId) match.member = mongoose.Types.ObjectId(memberId)
+            // Admin can filter by any memberId if provided
+            if (memberId) match.member = new mongoose.Types.ObjectId(memberId)
         }
 
         if (startDate || endDate) {
@@ -131,7 +132,10 @@ exports.getPaymentStats = async (req, res, next) => {
                     _id: null,
                     totalAmount: { $sum: '$amount' },
                     totalCount: { $sum: 1 },
-                    avgAmount: { $avg: '$amount' }
+                    avgAmount: { $avg: '$amount' },
+                    pendingAmount: {
+                        $sum: { $cond: [{ $eq: ['$status', 'pending'] }, '$amount', 0] }
+                    }
                 }
             }
         ])
@@ -148,7 +152,7 @@ exports.getPaymentStats = async (req, res, next) => {
         ])
 
         res.json({
-            overall: stats[0] || { totalAmount: 0, totalCount: 0, avgAmount: 0 },
+            overall: stats[0] || { totalAmount: 0, totalCount: 0, avgAmount: 0, pendingAmount: 0 },
             byType
         })
     } catch (err) {

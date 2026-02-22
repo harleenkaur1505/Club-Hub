@@ -392,7 +392,7 @@ export default function Committees({ view = 'all' }) {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-[#84592B]/50 focus:border-[#84592B]/50 transition-all font-outfit"
+                className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm font-outfit"
                 placeholder={formType === 'committee' ? 'e.g., Finance Committee' : 'e.g., Sports Club'}
               />
             </div>
@@ -402,7 +402,7 @@ export default function Committees({ view = 'all' }) {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows="4"
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-[#84592B]/50 focus:border-[#84592B]/50 transition-all font-outfit"
+                className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm font-outfit"
                 placeholder={formType === 'committee'
                   ? 'Describe the purpose and responsibilities...'
                   : 'Describe the purpose and activities...'}
@@ -473,14 +473,19 @@ export default function Committees({ view = 'all' }) {
 
                         {/* Header */}
                         <div
-                          className="flex items-center gap-4 mb-4 cursor-pointer"
-                          onClick={() => navigate(`/clubs/${committee._id}`)}
+                          className={`flex items-center gap-4 mb-4 ${committee._id ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                          onClick={() => committee._id && navigate(`/clubs/${committee._id}`)}
                         >
                           <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shadow-lg backdrop-blur-md bg-white/20 border border-white/30 group-hover:scale-105 transition-transform duration-300">
                             {clubIcons[committee.name] || '🏢'}
                           </div>
                           <h3 className="text-2xl font-bold text-white leading-tight drop-shadow-md group-hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.8)] transition-all duration-300">
                             {committee.name}
+                            {!committee._id && (
+                              <span className="block text-[10px] font-normal tracking-widest uppercase opacity-40 animate-pulse mt-1">
+                                Initializing...
+                              </span>
+                            )}
                           </h3>
                         </div>
 
@@ -508,11 +513,12 @@ export default function Committees({ view = 'all' }) {
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                navigate(`/clubs/${committee._id}`);
+                                if (committee._id) navigate(`/clubs/${committee._id}`);
                               }}
-                              className="text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/20 transition-all"
+                              disabled={!committee._id}
+                              className={`text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg backdrop-blur-sm border transition-all ${committee._id ? 'bg-white/20 hover:bg-white/30 border-white/20 hover:scale-105' : 'bg-white/5 border-white/5 opacity-50 cursor-not-allowed'}`}
                             >
-                              View Club
+                              {committee._id ? 'View Club' : 'Waiting...'}
                             </button>
                           </div>
                         </div>
@@ -685,12 +691,17 @@ export default function Committees({ view = 'all' }) {
                       <input
                         type="tel"
                         value={memberFormData.phone}
-                        onChange={(e) => setMemberFormData({ ...memberFormData, phone: e.target.value })}
+                        onChange={(e) => {
+                          const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setMemberFormData({ ...memberFormData, phone: val })
+                        }}
                         className="w-full border-2 border-gray-200 rounded-xl p-3 transition-all"
                         style={{ '--tw-ring-color': 'rgba(68, 45, 28, 0.2)' }}
                         onFocus={(e) => { e.target.style.borderColor = '#442D1C'; e.target.style.boxShadow = '0 0 0 3px rgba(68, 45, 28, 0.1)'; }}
                         onBlur={(e) => { e.target.style.borderColor = '#e5e7eb'; e.target.style.boxShadow = 'none'; }}
-                        placeholder="Phone number"
+                        placeholder="10-digit Mobile Number"
+                        pattern="[0-9]{10}"
+                        maxLength="10"
                       />
                     </div>
                     <div>

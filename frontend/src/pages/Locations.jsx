@@ -126,6 +126,10 @@ export default function Locations() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     try {
+      if (formData.phone && !/^\d{10}$/.test(formData.phone)) {
+        alert("Please enter a valid 10-digit phone number.")
+        return
+      }
       const payload = {
         ...formData,
         capacity: formData.capacity ? parseInt(formData.capacity) : undefined,
@@ -195,7 +199,7 @@ export default function Locations() {
         {user?.role === 'admin' && (
           <button
             onClick={() => setShowForm(!showForm)}
-            className={`px-8 py-4 rounded-xl font-bold font-outfit tracking-wider transition-all transform hover:scale-105 shadow-lg ${showForm ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20' : 'bg-[#84592B] text-[#442D1C] hover:bg-[#A67C52] hover:shadow-[0_0_20px_rgba(132,89,43,0.4)]'}`}
+            className={`px-8 py-4 rounded-xl font-bold font-outfit tracking-wider transition-all transform hover:scale-105 shadow-lg ${showForm ? 'bg-white/10 text-white border border-white/20 hover:bg-white/20' : 'bg-[#442D1C] text-white hover:bg-[#5D3E26] hover:shadow-[0_0_20px_rgba(68,45,28,0.4)]'}`}
           >
             {showForm ? 'Cancel' : '+ Add Location'}
           </button>
@@ -213,7 +217,7 @@ export default function Locations() {
       {showForm && (
         <div className="bg-[#442D1C] p-10 rounded-3xl shadow-2xl mb-12 slide-in-up relative overflow-hidden border border-white/5">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl" />
-          
+
           <h3 className="font-thin text-4xl mb-8 text-white font-outfit tracking-widest uppercase">Add New Location</h3>
           <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
             <div className="grid md:grid-cols-2 gap-6">
@@ -310,8 +314,14 @@ export default function Locations() {
                 <input
                   type="tel"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                    setFormData({ ...formData, phone: val })
+                  }}
                   className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white focus:outline-none transition-all"
+                  placeholder="10-digit Mobile Number"
+                  pattern="[0-9]{10}"
+                  maxLength="10"
                 />
               </div>
               <div>

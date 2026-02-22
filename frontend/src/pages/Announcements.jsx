@@ -114,7 +114,7 @@ export default function Announcements() {
                 required
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
+                className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm"
                 placeholder="Announcement title"
               />
             </div>
@@ -125,7 +125,7 @@ export default function Announcements() {
                 rows="5"
                 value={formData.message}
                 onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
+                className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm"
                 placeholder="Enter your message here..."
               />
             </div>
@@ -135,13 +135,13 @@ export default function Announcements() {
                 <select
                   value={formData.type}
                   onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
+                  className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm"
                 >
-                  <option value="general">General</option>
-                  <option value="event">Event</option>
-                  <option value="dues">Dues</option>
-                  <option value="urgent">Urgent</option>
-                  <option value="committee">Committee</option>
+                  <option className="bg-[#442D1C] text-black" value="general">General</option>
+                  <option className="bg-[#442D1C] text-black" value="event">Event</option>
+                  <option className="bg-[#442D1C] text-black" value="dues">Dues</option>
+                  <option className="bg-[#442D1C] text-black" value="urgent">Urgent</option>
+                  <option className="bg-[#442D1C] text-black" value="committee">Committee</option>
                 </select>
               </div>
               <div>
@@ -149,12 +149,12 @@ export default function Announcements() {
                 <select
                   value={formData.priority}
                   onChange={(e) => setFormData({ ...formData, priority: e.target.value })}
-                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
+                  className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm"
                 >
-                  <option value="low">Low</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
+                  <option className="bg-[#442D1C] text-black" value="low">Low</option>
+                  <option className="bg-[#442D1C] text-black" value="normal">Normal</option>
+                  <option className="bg-[#442D1C] text-black" value="high">High</option>
+                  <option className="bg-[#442D1C] text-black" value="urgent">Urgent</option>
                 </select>
               </div>
               <div>
@@ -162,12 +162,12 @@ export default function Announcements() {
                 <select
                   value={formData.targetAudience}
                   onChange={(e) => setFormData({ ...formData, targetAudience: e.target.value })}
-                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
+                  className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm"
                 >
-                  <option value="all">All Members</option>
-                  <option value="active_members">Active Members Only</option>
-                  <option value="committees">Specific Committees</option>
-                  <option value="specific">Specific Members</option>
+                  <option className="bg-[#442D1C] text-black" value="all">All Members</option>
+                  <option className="bg-[#442D1C] text-black" value="active_members">Active Members Only</option>
+                  <option className="bg-[#442D1C] text-black" value="committees">Specific Committees</option>
+                  <option className="bg-[#442D1C] text-black" value="specific">Specific Members</option>
                 </select>
               </div>
             </div>
@@ -181,10 +181,10 @@ export default function Announcements() {
                     ...formData,
                     targetMembers: Array.from(e.target.selectedOptions, option => option.value)
                   })}
-                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all h-32"
+                  className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm h-32"
                 >
                   {members.map(m => (
-                    <option key={m._id} value={m._id}>{m.name}</option>
+                    <option className="bg-[#442D1C] text-black" key={m._id} value={m._id}>{m.name}</option>
                   ))}
                 </select>
                 <p className="text-xs text-white/40 mt-1">Hold Ctrl/Cmd to select multiple</p>
@@ -200,10 +200,10 @@ export default function Announcements() {
                     ...formData,
                     targetCommittees: Array.from(e.target.selectedOptions, option => option.value)
                   })}
-                  className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all h-32"
+                  className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm h-32"
                 >
                   {committees.map(c => (
-                    <option key={c._id} value={c._id}>{c.name}</option>
+                    <option className="bg-[#442D1C] text-black" key={c._id} value={c._id}>{c.name}</option>
                   ))}
                 </select>
                 <p className="text-xs text-white/40 mt-1">Hold Ctrl/Cmd to select multiple</p>
@@ -215,7 +215,7 @@ export default function Announcements() {
                 type="date"
                 value={formData.expiresAt}
                 onChange={(e) => setFormData({ ...formData, expiresAt: e.target.value })}
-                className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
+                className="login-input w-full bg-[#442D1C] border border-[#84592B]/50 text-white rounded-xl p-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26] backdrop-blur-sm"
               />
             </div>
             <div className="flex gap-6">
@@ -296,7 +296,6 @@ export default function Announcements() {
                 <div className="flex flex-wrap gap-6 text-sm text-white/40 font-mono">
                   <span className="flex items-center gap-2">📅 {dayjs(announcement.createdAt).format('MMM D, YYYY h:mm A')}</span>
                   <span className="flex items-center gap-2">👤 {announcement.createdBy?.name || 'Admin'}</span>
-                  <span className="flex items-center gap-2">👁️ {announcement.readBy?.length || 0} reads</span>
                   {announcement.expiresAt && (
                     <span className="flex items-center gap-2 text-yellow-500/70">⏰ Expires: {dayjs(announcement.expiresAt).format('MMM D, YYYY')}</span>
                   )}

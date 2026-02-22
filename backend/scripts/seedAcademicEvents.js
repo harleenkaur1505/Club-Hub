@@ -1,3 +1,5 @@
+//This script seeds and synchronizes Academic Club events by creating missing events 
+//and updating existing ones, ensuring consistent and duplicate-free event data.
 const mongoose = require('mongoose')
 const Committee = require('../models/Committee')
 const Event = require('../models/Event')
@@ -8,7 +10,7 @@ const events = [
         description: 'Join us for an inspiring session with industry leaders and academic pioneers. Gain insights into cutting-edge research and real-world applications of theoretical knowledge.',
         date: new Date('2025-02-20T14:00:00'), // Future event
         venue: 'Auditorium',
-        images: ['https://images.unsplash.com/photo-1544531320-dadbed4d130e?auto=format&fit=crop&q=80&w=1000'] // Lecture/Speaker image
+        images: ['https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=1000'] // Lecture/Speaker image
     },
     {
         title: 'Research Paper Reading Sessions',

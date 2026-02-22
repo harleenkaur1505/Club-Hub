@@ -189,6 +189,7 @@ aside nav a.active::before {
 input[type="text"],
 input[type="email"],
 input[type="password"],
+input[type="tel"],
 textarea,
 select {
   background: rgba(255, 255, 255, 0.9) !important;
@@ -398,17 +399,45 @@ a:hover {
 }
 
 /* Login Input Overrides */
-input.login-input {
-  background: rgba(93, 62, 38, 0.4) !important;
+input.login-input,
+textarea.login-input,
+select.login-input {
+  background: #442D1C !important;
   color: white !important;
   border-color: rgba(132, 89, 43, 0.5) !important;
+  padding: 16px 20px !important;
+  accent-color: #C9A961;
 }
 
-input.login-input:focus {
-  background: rgba(93, 62, 38, 0.6) !important;
+input[type="date"].login-input,
+input[type="datetime-local"].login-input {
+  color-scheme: light;
+}
+
+input[type="date"].login-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(80%) sepia(35%) saturate(300%) hue-rotate(350deg) brightness(90%) contrast(90%);
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+input[type="date"].login-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+input.login-input:focus,
+textarea.login-input:focus,
+select.login-input:focus {
+  background: #5D3E26 !important;
   border-color: #C9A961 !important;
   color: white !important;
   box-shadow: 0 0 0 4px rgba(201, 169, 97, 0.2) !important;
+}
+
+input.login-input::placeholder,
+textarea.login-input::placeholder,
+select.login-input::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
 }
 
 

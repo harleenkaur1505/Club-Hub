@@ -15,7 +15,7 @@ const events = [
         description: 'Equip yourself with tools to handle life\'s pressures. Our interactive workshops cover stress identification, coping mechanisms, and building resilience.',
         date: new Date('2025-03-10T14:00:00'), // Future event
         venue: 'Community Hall B',
-        images: ['https://images.unsplash.com/photo-1544367563-12123d8965cd?auto=format&fit=crop&q=80&w=1000'] // Wellness/Relaxation image
+        images: ['https://images.unsplash.com/photo-1512438248247-f0f2a5a8b7f0?auto=format&fit=crop&q=80&w=1000'] // Wellness/Relaxation image
     }
 ]
 

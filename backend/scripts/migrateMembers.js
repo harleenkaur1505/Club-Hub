@@ -1,3 +1,5 @@
+//This migration script updates existing member records by adding default values 
+//for newly introduced fields, ensuring backward compatibility with the updated schema.
 require('dotenv').config({ path: '../.env' })
 const mongoose = require('mongoose')
 const Member = require('../models/Member')

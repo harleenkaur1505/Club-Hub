@@ -7,7 +7,7 @@ const PaymentSchema = new mongoose.Schema(
         amount: { type: Number, required: true },
         date: { type: Date, default: Date.now },
         type: { type: String, enum: ['dues', 'event', 'donation', 'other'], default: 'dues' },
-        method: { type: String, enum: ['cash', 'card', 'bank_transfer', 'check'], default: 'cash' },
+        method: { type: String, enum: ['cash', 'card', 'bank_transfer', 'check', 'online'], default: 'cash' },
         club: { type: String, required: false },
         dueDate: { type: Date },
         status: { type: String, enum: ['active', 'completed', 'pending', 'failed', 'overdue'], default: 'pending' },

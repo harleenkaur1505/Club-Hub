@@ -1,6 +1,7 @@
 // controllers/memberController.js
 const Member = require('../models/Member')
-
+//This controller manages club members with pagination, search,
+// role-based data access, committee-based fee generation, and soft deletion for data safety.
 // list with pagination & optional search
 exports.listMembers = async (req, res, next) => {
   try {

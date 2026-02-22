@@ -1,4 +1,6 @@
 // models/Event.js
+//This Mongoose schema defines the structure of an event, linking it with users, 
+//committees, locations, and attendees while supporting timestamps and relationships.
 const mongoose = require('mongoose')
 
 const EventSchema = new mongoose.Schema(

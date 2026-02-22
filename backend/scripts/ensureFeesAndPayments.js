@@ -1,3 +1,5 @@
+//This script ensures data consistency by assigning default fees to committees 
+//and backfilling missing payment records for members, while updating pending dues correctly.
 const mongoose = require('mongoose');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });

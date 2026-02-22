@@ -1,4 +1,5 @@
 // controllers/announcementController.js
+//This controller handles CRUD operations for announcements.
 const Announcement = require('../models/Announcement')
 
 exports.listAnnouncements = async (req, res, next) => {

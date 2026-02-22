@@ -1,6 +1,10 @@
 // controllers/authController.js
+//This controller manages authentication, email verification, password recovery, 
+// and session-based login while automatically creating member profiles for a club management system.
 // controllers/authController.js
 const User = require('../models/User')
+const Member = require('../models/Member') // Import Member
+const Payment = require('../models/Payment') // Import Payment
 const sendEmail = require('../utils/sendEmail')
 const jwt = require('jsonwebtoken')
 
@@ -11,7 +15,7 @@ const jwt = require('jsonwebtoken')
 // register
 exports.registerUser = async (req, res, next) => {
   try {
-    let { name, email, password } = req.body
+    let { name, email, password, mobile, address } = req.body // Extract all fields
 
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Name, email and password are required' })
@@ -36,6 +40,17 @@ exports.registerUser = async (req, res, next) => {
       password,
       role,
       isVerified: false
+    })
+
+    // AUTOMATICALLY CREATE MEMBER PROFILE
+    const member = await Member.create({
+      name: user.name,
+      email: user.email,
+      phone: mobile || '',
+      address: address || '',
+      joinedAt: new Date(),
+      status: 'active',
+      feesDue: 0
     })
 
     // Generate Verification Token (expires in 1 day)

@@ -48,7 +48,7 @@ export default function Login() {
                 required
                 type="email"
                 placeholder="Enter your email"
-                className="login-input w-full bg-[#5D3E26]/40 border border-[#84592B]/50 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/20 hover:bg-[#5D3E26]/60 backdrop-blur-sm"
+                className="login-input w-full bg-[#5D3E26]/40 border border-[#84592B]/50 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26]/60 backdrop-blur-sm"
               />
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#C9A961]/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" />
             </div>
@@ -63,7 +63,7 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="Enter your password"
-                className="login-input w-full bg-[#5D3E26]/40 border border-[#84592B]/50 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/20 hover:bg-[#5D3E26]/60 backdrop-blur-sm"
+                className="login-input w-full bg-[#5D3E26]/40 border border-[#84592B]/50 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26]/60 backdrop-blur-sm"
               />
               <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#C9A961]/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" />
             </div>

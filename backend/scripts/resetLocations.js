@@ -1,3 +1,5 @@
+//This script resets the locations collection
+// and seeds it with a predefined set of correct club locations, ensuring clean and consistent location data.
 const mongoose = require('mongoose');
 const Location = require('../models/Location');
 require('dotenv').config({ path: '../.env' });

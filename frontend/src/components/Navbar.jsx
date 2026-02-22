@@ -29,21 +29,22 @@ export default function Navbar() {
       <nav className={`
         pointer-events-auto
         flex items-center justify-between
-        px-6 py-3
+        px-8 py-3
         bg-[#442D1C] 
         rounded-full 
         shadow-[0_10px_40px_rgba(0,0,0,0.4)]
         hover:shadow-[0_15px_50px_rgba(0,0,0,0.5)]
         backdrop-blur-xl
         transition-all duration-500 ease-in-out
-        ${scrolled ? 'w-[85%] md:w-[80%] lg:w-[75%] mt-0' : 'w-[95%] md:w-[90%] mt-2'}
+        ${scrolled ? 'w-[90%] lg:w-[85%] mt-0' : 'w-[95%] mt-2'}
         bg-opacity-95
         border border-white/5
+        max-w-7xl
       `}>
 
         {/* Left: Logo */}
         <div
-          className="flex items-center gap-4 cursor-pointer group pr-6 border-r border-[#5D3E26]/30"
+          className="flex-shrink-0 flex items-center gap-4 cursor-pointer group pr-6 border-r border-[#5D3E26]/30"
           onClick={() => navigate('/')}
         >
           <div className="relative">
@@ -57,7 +58,7 @@ export default function Navbar() {
         </div>
 
         {/* Center: Navigation Links */}
-        <div className="hidden lg:flex items-center gap-1 mx-4">
+        <div className="hidden lg:flex flex-1 items-center justify-center gap-1 mx-4 min-w-0">
           {[
             { name: 'Dashboard', path: '/dashboard' },
             { name: 'Members', path: '/members' },
@@ -104,12 +105,12 @@ export default function Navbar() {
         </div>
 
         {/* Right: User Profile / Auth */}
-        <div className="flex items-center gap-4 pl-6 border-l border-[#5D3E26]/30">
+        <div className="flex-shrink-0 flex items-center gap-4 pl-6 border-l border-[#5D3E26]/30">
           {user ? (
             <div className="flex items-center gap-3">
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-sm font-semibold text-white">{user.name}</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider">Member</span>
+                <span className="text-[10px] text-gray-400 uppercase tracking-wider">{user.role || 'Member'}</span>
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#5D3E26] to-[#442D1C] border border-white/10 flex items-center justify-center text-white shadow-inner">
                 {user.name.charAt(0).toUpperCase()}

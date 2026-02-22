@@ -1,3 +1,5 @@
+//This script verifies role-based data access by simulating admin 
+//and non-admin requests to ensure sensitive member fields are hidden from regular users and visible to admins.
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const Member = require('../models/Member');

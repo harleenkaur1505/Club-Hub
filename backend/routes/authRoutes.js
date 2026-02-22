@@ -1,4 +1,6 @@
 // routes/authRoutes.js
+//This router handles all authentication-related endpoints 
+//including registration, login, email verification, password recovery, and session management.
 const express = require('express')
 const router = express.Router()
 const {

@@ -14,9 +14,9 @@ export default function Payments() {
   const [formData, setFormData] = useState({
     member: '',
     amount: '',
-    paymentType: 'dues',
-    paymentMethod: 'cash',
-    paymentDate: dayjs().format('YYYY-MM-DD'),
+    type: 'dues',
+    method: 'cash',
+    date: dayjs().format('YYYY-MM-DD'),
     dueDate: '',
     status: 'completed',
     receiptNumber: '',
@@ -25,7 +25,7 @@ export default function Payments() {
   const [filters, setFilters] = useState({
     member: '',
     status: '',
-    paymentType: '',
+    type: '',
     startDate: '',
     endDate: ''
   })
@@ -40,14 +40,26 @@ export default function Payments() {
 
   const loadData = async () => {
     try {
-      const [paymentsRes, membersRes, statsRes] = await Promise.all([
+      const promises = [
         paymentsAPI.list(filters),
-        membersAPI.list(),
         paymentsAPI.getStats(filters)
-      ])
+      ]
+
+      if (user?.role === 'admin') {
+        promises.push(membersAPI.list())
+      }
+
+      const results = await Promise.all(promises)
+      const paymentsRes = results[0]
+      const statsRes = results[1]
+      const membersRes = user?.role === 'admin' ? results[2] : null
+
       setPayments(paymentsRes.data.payments || [])
-      setMembers(membersRes.data.members || [])
+      if (membersRes) {
+        setMembers(membersRes.data.members || [])
+      }
       setStats(statsRes.data)
+      setError(null)
     } catch (err) {
       console.error(err)
       setError('Failed to load data. Please try again.')
@@ -62,7 +74,7 @@ export default function Payments() {
       const payload = {
         ...formData,
         amount: parseFloat(formData.amount),
-        paymentDate: formData.paymentDate ? new Date(formData.paymentDate) : new Date(),
+        date: formData.date ? new Date(formData.date) : new Date(),
         dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined
       }
       await paymentsAPI.create(payload)
@@ -70,9 +82,9 @@ export default function Payments() {
       setFormData({
         member: '',
         amount: '',
-        paymentType: 'dues',
-        paymentMethod: 'cash',
-        paymentDate: dayjs().format('YYYY-MM-DD'),
+        type: 'dues',
+        method: 'cash',
+        date: dayjs().format('YYYY-MM-DD'),
         dueDate: '',
         status: 'completed',
         receiptNumber: '',
@@ -100,7 +112,7 @@ export default function Payments() {
     <div className="fade-in">
       <div className="flex flex-col md:flex-row justify-between items-center mb-12">
         <h1 className="text-6xl md:text-7xl font-thin font-outfit text-[#442D1C] tracking-[0.1em] drop-shadow-sm py-6">
-          Payments
+          {user?.role === 'admin' ? 'Payments' : 'Your Payments'}
         </h1>
         {user?.role === 'admin' && (
           <button
@@ -117,37 +129,55 @@ export default function Payments() {
         <div className="text-center py-20 text-[#442D1C]/50 animate-pulse font-outfit tracking-widest uppercase">Loading payments...</div>
       ) : (
         <>
-          {stats && (
-            <div className="grid md:grid-cols-4 gap-6 mb-12">
-              <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
-                <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Total Collected</div>
-                <div className="text-3xl font-bold text-white font-outfit">
-                  ₹{stats.overall?.totalAmount?.toFixed(2) || '0.00'}
+          {user?.role === 'admin' ? (
+            stats && (
+              <div className="grid md:grid-cols-4 gap-6 mb-12">
+                <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
+                  <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Total Collected</div>
+                  <div className="text-3xl font-bold text-white font-outfit">
+                    ₹{stats.overall?.totalAmount?.toFixed(2) || '0.00'}
+                  </div>
+                </div>
+                <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
+                  <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Total Payments</div>
+                  <div className="text-3xl font-bold text-white font-outfit">{stats.overall?.totalCount || 0}</div>
+                </div>
+                <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
+                  <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Avg. Payment</div>
+                  <div className="text-3xl font-bold text-white font-outfit">
+                    ₹{stats.overall?.avgAmount?.toFixed(2) || '0.00'}
+                  </div>
+                </div>
+                <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#E6D08E]/10 to-transparent pointer-events-none" />
+                  <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold relative z-10">Dues Collected</div>
+                  <div className="text-3xl font-bold text-[#E6D08E] font-outfit relative z-10">
+                    ₹{stats.byType?.find(s => s._id === 'dues')?.total?.toFixed(2) || '0.00'}
+                  </div>
                 </div>
               </div>
-              <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
-                <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Total Payments</div>
-                <div className="text-3xl font-bold text-white font-outfit">{stats.overall?.totalCount || 0}</div>
-              </div>
-              <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
-                <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Avg. Payment</div>
-                <div className="text-3xl font-bold text-white font-outfit">
-                  ₹{stats.overall?.avgAmount?.toFixed(2) || '0.00'}
+            )
+          ) : (
+            stats && (
+              <div className="grid md:grid-cols-2 gap-6 mb-12">
+                <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg">
+                  <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold">Total Payments Made</div>
+                  <div className="text-3xl font-bold text-white font-outfit">{stats.overall?.totalCount || 0}</div>
+                </div>
+                <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/20 shadow-2xl relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent pointer-events-none" />
+                  <div className="text-sm text-red-200/60 uppercase tracking-widest mb-2 font-semibold relative z-10">Due pending</div>
+                  <div className="text-3xl font-bold text-red-400 font-outfit relative z-10">
+                    ₹{stats.overall?.pendingAmount?.toFixed(2) || '0.00'}
+                  </div>
                 </div>
               </div>
-              <div className="bg-[#442D1C] backdrop-blur-sm p-6 rounded-3xl border border-white/10 shadow-lg relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#E6D08E]/10 to-transparent pointer-events-none" />
-                <div className="text-sm text-white/60 uppercase tracking-widest mb-2 font-semibold relative z-10">Dues Collected</div>
-                <div className="text-3xl font-bold text-[#E6D08E] font-outfit relative z-10">
-                  ₹{stats.byType?.find(s => s._id === 'dues')?.total?.toFixed(2) || '0.00'}
-                </div>
-              </div>
-            </div>
+            )
           )}
 
           <div className="bg-[#442D1C] p-8 rounded-3xl shadow-xl mb-12 border border-white/10">
             <h3 className="text-white font-outfit text-xl mb-6 tracking-wider font-light uppercase">Filter Payments</h3>
-            <div className="grid md:grid-cols-4 gap-4">
+            <div className={`grid gap-4 ${user?.role === 'admin' ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}>
               {user?.role === 'admin' && (
                 <select
                   value={filters.member}
@@ -170,9 +200,10 @@ export default function Payments() {
                 <option value="pending">Pending</option>
                 <option value="failed">Failed</option>
               </select>
+// ... (Filters section update) ...
               <select
-                value={filters.paymentType}
-                onChange={(e) => setFilters({ ...filters, paymentType: e.target.value })}
+                value={filters.type}
+                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
                 className="payment-input w-full rounded-xl p-3 focus:outline-none transition-all"
               >
                 <option value="">All Types</option>
@@ -228,8 +259,8 @@ export default function Payments() {
                     <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Type *</label>
                     <select
                       required
-                      value={formData.paymentType}
-                      onChange={(e) => setFormData({ ...formData, paymentType: e.target.value })}
+                      value={formData.type}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
                       className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
                     >
                       <option value="dues" className="bg-[#442D1C]">Dues</option>
@@ -242,8 +273,8 @@ export default function Payments() {
                     <label className="block text-sm font-semibold text-white/70 mb-2 uppercase tracking-tighter">Method *</label>
                     <select
                       required
-                      value={formData.paymentMethod}
-                      onChange={(e) => setFormData({ ...formData, paymentMethod: e.target.value })}
+                      value={formData.method}
+                      onChange={(e) => setFormData({ ...formData, method: e.target.value })}
                       className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
                     >
                       <option value="cash" className="bg-[#442D1C]">Cash</option>
@@ -274,8 +305,8 @@ export default function Payments() {
                     <input
                       type="date"
                       required
-                      value={formData.paymentDate}
-                      onChange={(e) => setFormData({ ...formData, paymentDate: e.target.value })}
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
                       className="payment-input w-full rounded-xl p-4 focus:outline-none transition-all"
                     />
                   </div>
@@ -320,20 +351,20 @@ export default function Payments() {
                 <div key={payment._id} className="bg-[#442D1C]/50 backdrop-blur-md p-6 rounded-2xl border border-white/10 hover:bg-[#442D1C]/60 transition-all group shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="flex items-center gap-4 w-full md:w-auto">
                     <div className="w-12 h-12 rounded-full bg-[#5D3E26] flex items-center justify-center text-2xl shadow-inner border border-white/5">
-                      {payment.paymentType === 'dues' ? '📅' : payment.paymentType === 'donation' ? '🎁' : '🎫'}
+                      {payment.type === 'dues' ? '📅' : payment.type === 'donation' ? '🎁' : '🎫'}
                     </div>
                     <div>
                       <h4 className="text-white font-outfit font-semibold text-lg">
-                        {user?.role === 'admin' ? (payment.member?.name || 'Unknown Member') : 'Club Member'}
+                        {payment.member?.name || 'Unknown Member'}
                       </h4>
-                      <p className="text-white/50 text-sm capitalize">{payment.paymentType} • {payment.paymentMethod}</p>
+                      <p className="text-white/50 text-sm capitalize">{payment.type} • {payment.method}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
                     <div className="text-right">
                       <div className="text-[#C9A961] font-bold text-xl font-outfit">₹{payment.amount.toFixed(2)}</div>
-                      <div className="text-white/40 text-xs">{dayjs(payment.paymentDate).format('MMM D, YYYY')}</div>
+                      <div className="text-white/40 text-xs">{dayjs(payment.date).format('MMM D, YYYY')}</div>
                     </div>
 
                     <div className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider ${payment.status === 'completed' ? 'bg-green-500/20 text-green-300 border border-green-500/30' :
@@ -343,17 +374,29 @@ export default function Payments() {
                       {payment.status}
                     </div>
 
-                    {payment.status === 'pending' && user?.role === 'admin' && (
-                      <button
-                        onClick={() => {
-                          setSelectedPaymentId(payment._id)
-                          setIsConfirmModalOpen(true)
-                        }}
-                        className="bg-[#C9A961] text-[#442D1C] p-2 rounded-lg hover:bg-[#E6D08E] transition-colors shadow-lg"
-                        title="Mark as Paid"
-                      >
-                        ✓
-                      </button>
+                    {payment.status === 'pending' && (
+                      user?.role === 'admin' ? (
+                        <button
+                          onClick={() => {
+                            setSelectedPaymentId(payment._id)
+                            setIsConfirmModalOpen(true)
+                          }}
+                          className="bg-[#C9A961] text-[#442D1C] p-2 rounded-lg hover:bg-[#E6D08E] transition-colors shadow-lg"
+                          title="Mark as Paid"
+                        >
+                          ✓
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setSelectedPaymentId(payment._id)
+                            setIsConfirmModalOpen(true)
+                          }}
+                          className="bg-[#C9A961] text-[#442D1C] px-6 py-2 rounded-lg hover:bg-[#E6D08E] transition-all shadow-lg font-bold text-sm hover:scale-105 active:scale-95"
+                        >
+                          Pay Now
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -370,8 +413,10 @@ export default function Payments() {
           setSelectedPaymentId(null)
         }}
         onConfirm={handleConfirmPayment}
-        title="Confirm Payment"
-        message="Are you sure you want to mark this payment as paid? This action will update the status to completed."
+        title={user?.role === 'admin' ? "Confirm Mark as Paid" : "Confirm Payment"}
+        message={user?.role === 'admin'
+          ? "Are you sure you want to mark this payment as paid? This action will update the status to completed."
+          : "Are you sure you want to pay this amount now? This will complete the transaction."}
       />
     </div>
   )

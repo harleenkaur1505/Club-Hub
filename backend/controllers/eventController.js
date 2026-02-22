@@ -1,4 +1,6 @@
 // controllers/eventController.js
+//This controller manages event operations, 
+// supports upcoming event filtering, tracks event creators, and provides full CRUD functionality for club events.
 const Event = require('../models/Event')
 
 // list

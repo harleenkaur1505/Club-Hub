@@ -37,7 +37,22 @@ export default function ClubDetails() {
         loadClubData()
     }, [id])
 
+    // Auto-fill member form with logged-in user details
+    useEffect(() => {
+        if (user) {
+            setMemberFormData(prev => ({
+                ...prev,
+                name: user.name || '',
+                email: user.email || ''
+            }))
+        }
+    }, [user])
+
     const loadClubData = async () => {
+        if (!id || id === 'null') {
+            navigate('/dashboard')
+            return
+        }
         try {
             setLoading(true)
             // Fetch club details
@@ -64,15 +79,35 @@ export default function ClubDetails() {
     const handleRegisterSubmit = async (e) => {
         e.preventDefault()
         setRegisterError(null)
+
+        if (!/^\d{10}$/.test(memberFormData.phone)) {
+            setRegisterError("Please enter a valid 10-digit phone number.")
+            return
+        }
+
         setIsRegistering(true)
 
         try {
-            // Create the member
-            const memberRes = await membersAPI.create(memberFormData)
-            const newMemberId = memberRes.data.member._id
+            let memberId;
 
-            // Add to Club
-            await committeesAPI.addMember(id, newMemberId)
+            // 1. Check if user is logged in and already has a member profile
+            if (user?.email) {
+                const existingRes = await membersAPI.list({ q: user.email })
+                const existingMember = existingRes.data.members?.find(m => m.email.toLowerCase() === user.email.toLowerCase())
+
+                if (existingMember) {
+                    memberId = existingMember._id
+                }
+            }
+
+            // 2. If no existing member found, create one (fallback or guest)
+            if (!memberId) {
+                const memberRes = await membersAPI.create(memberFormData)
+                memberId = memberRes.data.member._id
+            }
+
+            // 3. Add to Club
+            await committeesAPI.addMember(id, memberId)
 
             // Refresh Data
             loadClubData()
@@ -101,7 +136,7 @@ export default function ClubDetails() {
                     alt={club.name}
                     className="absolute inset-0 w-full h-full object-cover mix-blend-multiply opacity-40 transition-transform duration-700 group-hover:scale-110"
                 />
-                
+
                 {/* Signature Brown Gradient Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#442D1C] via-[#442D1C]/40 to-transparent z-10" />
 
@@ -129,7 +164,7 @@ export default function ClubDetails() {
                     {/* About Section */}
                     <div className="bg-[#442D1C] p-8 rounded-3xl shadow-2xl relative overflow-hidden border border-white/5">
                         <div className="absolute top-0 right-0 w-48 h-48 bg-white/5 rounded-full -mr-24 -mt-24 blur-3xl" />
-                        
+
                         <h2 className="text-2xl font-thin font-outfit mb-4 text-white tracking-widest uppercase relative z-10">About the Club</h2>
                         <p className="text-white/60 leading-relaxed text-base italic font-light relative z-10">
                             {club.description}
@@ -197,7 +232,7 @@ export default function ClubDetails() {
                     {/* Action Card */}
                     <div className="bg-[#442D1C] p-8 rounded-3xl shadow-2xl relative overflow-hidden border border-white/5">
                         <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-[#84592B] opacity-10 rounded-full blur-2xl" />
-                        
+
                         <h3 className="text-xl font-thin font-outfit mb-3 text-white tracking-widest uppercase">Join Us Today</h3>
                         <p className="text-white/40 mb-6 italic font-light text-xs leading-relaxed">
                             Experience the exclusivity of {club.name}. Register now to unlock community events.
@@ -238,93 +273,111 @@ export default function ClubDetails() {
             {/* Registration Modal */}
             {showRegisterModal && (
                 <div className="fixed inset-0 bg-black/40 backdrop-blur-xl flex items-center justify-center z-[100] p-4 backdrop-fade">
-                    <div className="bg-[#442D1C] rounded-[40px] shadow-[0_0_100px_rgba(0,0,0,0.6)] w-full max-w-xl overflow-hidden zoom-in border border-white/5 relative">
+                    <div className="bg-[#442D1C] rounded-[40px] shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] w-full max-w-xl overflow-hidden zoom-in border border-white/10 relative">
+                        {/* Decorative background gradients */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#5D3E26] via-[#C9A961] to-[#5D3E26] opacity-50"></div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-[#C9A961] opacity-5 rounded-full -mr-32 -mt-32 blur-[80px] pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#5D3E26] opacity-10 rounded-full -ml-32 -mb-32 blur-[80px] pointer-events-none" />
+
                         <div className="p-10 text-white relative">
-                            {/* Decorative Elements */}
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-[#84592B] opacity-10 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
-                            <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -ml-32 -mb-32 blur-3xl pointer-events-none" />
-                            
                             <div className="flex justify-between items-start mb-10 relative z-10">
                                 <div>
-                                    <h3 className="text-4xl font-thin font-outfit tracking-widest uppercase mb-2 drop-shadow-md">Registration</h3>
-                                    <p className="text-white/40 italic font-light tracking-wide text-sm">Join the {club.name} community</p>
+                                    <h3 className="text-4xl font-bold font-outfit mb-3 text-white drop-shadow-md">Join {club.name}</h3>
+                                    <p className="text-orange-100/70 text-lg font-light italic italic">Become a member of this exclusive community</p>
                                 </div>
                                 <button
                                     onClick={() => setShowRegisterModal(false)}
-                                    className="p-3 bg-white/5 hover:bg-red-500/20 rounded-full transition-all duration-300 text-white/30 hover:text-red-400 border border-white/5 hover:border-red-500/20"
+                                    className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-all duration-300 text-white/40 hover:text-white border border-white/5"
                                 >
                                     ✕
                                 </button>
                             </div>
 
-                            <form onSubmit={handleRegisterSubmit} className="space-y-8 relative z-10">
+                            <form onSubmit={handleRegisterSubmit} className="space-y-6 relative z-10">
                                 {registerError && (
-                                    <div className="bg-red-500/10 text-red-200 p-4 rounded-2xl border border-red-500/20 text-sm italic font-light backdrop-blur-sm animate-pulse">
+                                    <div className="bg-red-500/10 text-red-200 p-4 rounded-xl border border-red-500/20 text-sm italic font-light backdrop-blur-sm">
                                         {registerError}
                                     </div>
                                 )}
 
                                 <div className="group">
-                                    <label className="block text-[10px] font-bold text-white/30 mb-3 uppercase tracking-[0.3em] group-focus-within:text-[#84592B] transition-colors">Personal Name *</label>
-                                    <input
-                                        type="text"
-                                        required
-                                        value={memberFormData.name}
-                                        onChange={(e) => setMemberFormData({ ...memberFormData, name: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-[#84592B]/30 focus:border-[#84592B]/50 transition-all duration-300 font-outfit placeholder:text-white/10"
-                                        placeholder="Enter your full identity"
-                                    />
+                                    <label className="block text-xs font-semibold text-orange-200/80 mb-2 uppercase tracking-widest pl-1">Personal Name *</label>
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            required
+                                            value={memberFormData.name}
+                                            onChange={(e) => setMemberFormData({ ...memberFormData, name: e.target.value })}
+                                            className="login-input w-full bg-[#5D3E26]/40 border border-[#84592B]/50 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26]/60 backdrop-blur-sm"
+                                            placeholder="Enter your full identity"
+                                        />
+                                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#C9A961]/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" />
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-8">
-                                    <div className="group">
-                                        <label className="block text-[10px] font-bold text-white/30 mb-3 uppercase tracking-[0.3em] group-focus-within:text-[#84592B] transition-colors">Digital Mail *</label>
-                                        <input
-                                            type="email"
-                                            required
-                                            value={memberFormData.email}
-                                            onChange={(e) => setMemberFormData({ ...memberFormData, email: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-[#84592B]/30 focus:border-[#84592B]/50 transition-all duration-300 font-outfit placeholder:text-white/10"
-                                            placeholder="email@vault.com"
-                                        />
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                                    <div className="group md:col-span-7">
+                                        <label className="block text-xs font-semibold text-orange-200/80 mb-2 uppercase tracking-widest pl-1">Digital Mail *</label>
+                                        <div className="relative">
+                                            <input
+                                                type="email"
+                                                required
+                                                value={memberFormData.email}
+                                                onChange={(e) => setMemberFormData({ ...memberFormData, email: e.target.value })}
+                                                className="login-input w-full bg-[#5D3E26]/40 border border-[#84592B]/50 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26]/60 backdrop-blur-sm"
+                                                placeholder="email@vault.com"
+                                            />
+                                            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#C9A961]/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" />
+                                        </div>
                                     </div>
-                                    <div className="group">
-                                        <label className="block text-[10px] font-bold text-white/30 mb-3 uppercase tracking-[0.3em] group-focus-within:text-[#84592B] transition-colors">Contact Line *</label>
-                                        <input
-                                            type="tel"
-                                            required
-                                            value={memberFormData.phone}
-                                            onChange={(e) => setMemberFormData({ ...memberFormData, phone: e.target.value })}
-                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-[#84592B]/30 focus:border-[#84592B]/50 transition-all duration-300 font-outfit placeholder:text-white/10"
-                                            placeholder="+ Contact No."
-                                        />
+                                    <div className="group md:col-span-5">
+                                        <label className="block text-xs font-semibold text-orange-200/80 mb-2 uppercase tracking-widest pl-1">Contact Line *</label>
+                                        <div className="relative">
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={memberFormData.phone}
+                                                onChange={(e) => {
+                                                    const val = e.target.value.replace(/\D/g, '').slice(0, 10);
+                                                    setMemberFormData({ ...memberFormData, phone: val })
+                                                }}
+                                                className="login-input w-full bg-[#5D3E26]/40 border border-[#84592B]/50 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26]/60 backdrop-blur-sm"
+                                                placeholder="10-digit Mobile Number"
+                                                pattern="[0-9]{10}"
+                                                maxLength="10"
+                                            />
+                                            <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#C9A961]/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" />
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="group">
-                                    <label className="block text-[10px] font-bold text-white/30 mb-3 uppercase tracking-[0.3em] group-focus-within:text-[#84592B] transition-colors">Residential Locale *</label>
-                                    <textarea
-                                        required
-                                        rows="2"
-                                        value={memberFormData.address}
-                                        onChange={(e) => setMemberFormData({ ...memberFormData, address: e.target.value })}
-                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:ring-2 focus:ring-[#84592B]/30 focus:border-[#84592B]/50 transition-all duration-300 font-outfit italic font-light placeholder:text-white/10"
-                                        placeholder="Your detailed physical address"
-                                    />
+                                    <label className="block text-xs font-semibold text-orange-200/80 mb-2 uppercase tracking-widest pl-1">Residential Locale *</label>
+                                    <div className="relative">
+                                        <textarea
+                                            required
+                                            rows="2"
+                                            value={memberFormData.address}
+                                            onChange={(e) => setMemberFormData({ ...memberFormData, address: e.target.value })}
+                                            className="login-input w-full bg-[#5D3E26]/40 border border-[#84592B]/50 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-[#C9A961] focus:ring-1 focus:ring-[#C9A961] transition-all placeholder:text-white/60 hover:bg-[#5D3E26]/60 backdrop-blur-sm resize-none"
+                                            placeholder="Your detailed physical address"
+                                        />
+                                        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-[#C9A961]/20 to-transparent opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-300" />
+                                    </div>
                                 </div>
 
-                                <div className="pt-6 flex gap-6">
+                                <div className="pt-6 flex gap-4">
                                     <button
                                         type="button"
                                         onClick={() => setShowRegisterModal(false)}
-                                        className="flex-1 py-4 text-white/30 font-bold tracking-widest uppercase hover:text-white transition-all duration-300 hover:bg-white/5 rounded-2xl border border-transparent hover:border-white/5"
+                                        className="flex-1 py-4 text-white hover:text-[#C9A961] font-bold tracking-widest uppercase transition-all duration-300 hover:bg-white/5 rounded-xl border border-white/5"
                                     >
                                         Dismiss
                                     </button>
                                     <button
                                         type="submit"
                                         disabled={isRegistering}
-                                        className="flex-[2] py-4 bg-[#84592B] text-[#442D1C] rounded-2xl font-bold font-outfit tracking-widest uppercase shadow-lg hover:shadow-[0_0_40px_rgba(132,89,43,0.5)] transition-all duration-500 transform hover:scale-[1.03] disabled:opacity-50 active:scale-95"
+                                        className="flex-[2] py-4 bg-gradient-to-r from-[#C9A961] via-[#E6D5B3] to-[#C9A961] text-[#442D1C] rounded-xl font-bold font-outfit tracking-widest uppercase shadow-[0_0_20px_rgba(201,169,97,0.3)] hover:shadow-[0_0_30px_rgba(201,169,97,0.5)] transition-all duration-500 transform hover:scale-[1.02] disabled:opacity-50 active:scale-95"
                                     >
                                         {isRegistering ? 'Processing...' : 'Complete Profile'}
                                     </button>

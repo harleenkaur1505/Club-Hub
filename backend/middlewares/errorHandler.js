@@ -1,4 +1,6 @@
 // middlewares/errorHandler.js
+//This middleware centrally handles all application errors, formats them 
+//into user-friendly responses, logs useful debugging information, and safely manages database-related errors.
 exports.errorHandler = (err, req, res, next) => {
   // Log error details
   console.error('❌ Error:', {
