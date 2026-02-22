@@ -6,7 +6,7 @@ const Member = require('../models/Member')
 exports.listMembers = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, q } = req.query
-    const filter = { isDeleted: false }
+    const filter = { isDeleted: false, 'committees.0': { $exists: true } }
     if (q) filter.$or = [{ name: new RegExp(q, 'i') }, { email: new RegExp(q, 'i') }]
 
     const members = await Member.find(filter)

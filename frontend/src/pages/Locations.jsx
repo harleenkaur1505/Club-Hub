@@ -2,6 +2,8 @@ import React, { useEffect, useState, useRef } from 'react'
 import { locationsAPI, committeesAPI } from '../services/membershipAPI'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import ChatBox from '../components/Chat/ChatBox'
+import { io } from 'socket.io-client'
 
 export default function Locations() {
   const { user } = useAuth()
@@ -9,6 +11,81 @@ export default function Locations() {
   const [clubs, setClubs] = useState([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
+
+  // Chat state
+  const [activeChatLocation, setActiveChatLocation] = useState(null)
+  const [unreadCounts, setUnreadCounts] = useState({})
+
+  const activeChatRef = useRef(null)
+  const globalSocketRef = useRef(null)
+  const subscribedRoomsRef = useRef([])
+
+  useEffect(() => {
+    activeChatRef.current = activeChatLocation;
+    if (activeChatLocation) {
+      // Clear unread count when opening chat
+      setUnreadCounts(prev => {
+        const newCounts = { ...prev };
+        delete newCounts[activeChatLocation._id];
+        return newCounts;
+      });
+    }
+  }, [activeChatLocation]);
+
+  useEffect(() => {
+    const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+
+    if (user && !globalSocketRef.current) {
+      globalSocketRef.current = io(SOCKET_URL, {
+        path: '/socket.io',
+        withCredentials: true,
+        transports: ['websocket', 'polling']
+      });
+
+      globalSocketRef.current.on('message', (message) => {
+        if (message.system || (message.sender && message.sender === user._id)) return;
+
+        const currentActive = activeChatRef.current;
+        if (currentActive && currentActive._id === message.room) return;
+
+        setUnreadCounts(prev => ({
+          ...prev,
+          [message.room]: (prev[message.room] || 0) + 1
+        }));
+      });
+
+      globalSocketRef.current.on('unreadCountUpdate', ({ room, count }) => {
+        setUnreadCounts(prev => ({
+          ...prev,
+          [room]: Math.max(prev[room] || 0, count)
+        }));
+      });
+
+      globalSocketRef.current.on('connect', () => {
+        if (subscribedRoomsRef.current.length > 0) {
+          globalSocketRef.current.emit('subscribeToRooms', subscribedRoomsRef.current, user._id)
+        }
+      });
+    }
+
+    return () => {
+      if (globalSocketRef.current) {
+        globalSocketRef.current.disconnect();
+        globalSocketRef.current = null;
+      }
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (locations.length > 0 && user) {
+      const rooms = locations.map(loc => loc._id);
+      subscribedRoomsRef.current = rooms;
+      if (globalSocketRef.current && globalSocketRef.current.connected) {
+        globalSocketRef.current.emit('subscribeToRooms', rooms, user._id);
+      }
+    }
+  }, [locations, user]);
+
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -25,6 +102,7 @@ export default function Locations() {
     lng: ''
   })
 
+  // ... (keeping mapRef and useEffect the same to preserve map, I need to fetch the whole file or carefully replace parts)
   const mapRef = useRef(null)
 
   useEffect(() => {
@@ -66,7 +144,8 @@ export default function Locations() {
         // Find linked clubs
         const clubsAtLocation = clubs.filter(c =>
           (c.location && loc.address && c.location.toLowerCase().includes(loc.address.toLowerCase())) ||
-          (c.location && loc.city && c.location.toLowerCase().includes(loc.city.toLowerCase()))
+          (c.location && loc.city && c.location.toLowerCase().includes(loc.city.toLowerCase())) ||
+          (c.name && loc.name && (c.name.toLowerCase().includes(loc.name.toLowerCase()) || loc.name.toLowerCase().includes(c.name.toLowerCase())))
         );
 
         // Construct Popup DOM Element (better than string for React Router interaction, but vanilla JS links work too)
@@ -377,23 +456,36 @@ export default function Locations() {
             if (match) bgImage = clubBackgrounds[match]
           }
 
+          // Find linked clubs for this location
+          const clubsAtLocation = clubs.filter(c =>
+            (c.location && location.address && c.location.toLowerCase().includes(location.address.toLowerCase())) ||
+            (c.location && location.city && c.location.toLowerCase().includes(location.city.toLowerCase())) ||
+            (c.name && location.name && (c.name.toLowerCase().includes(location.name.toLowerCase()) || location.name.toLowerCase().includes(c.name.toLowerCase())))
+          );
+
+          const clubIdsAtLocation = clubsAtLocation.map(c => c._id);
+          const isMemberOfLocationClub = user && user.joinedClubs && user.joinedClubs.some(clubId => clubIdsAtLocation.includes(clubId));
+
           return (
             <div
               key={location._id}
-              className="group relative overflow-hidden rounded-3xl bg-[#442D1C] shadow-lg hover:shadow-2xl transition-all duration-500 h-[320px] flex flex-col"
+              className="group relative rounded-3xl bg-[#442D1C] shadow-lg hover:shadow-2xl transition-all duration-500 h-[320px] flex flex-col"
             >
-              {/* Background Image with Brown Tint */}
-              <div
-                className="absolute inset-0 z-0 transition-transform duration-700 group-hover:scale-110 opacity-40 mix-blend-multiply"
-                style={{
-                  backgroundImage: `url(${bgImage})`,
-                  backgroundSize: 'cover',
-                  backgroundPosition: 'center',
-                }}
-              />
+              {/* Background Wrapper to prevent overflow-hidden from clipping the badge */}
+              <div className="absolute inset-0 rounded-3xl overflow-hidden pointer-events-none">
+                {/* Background Image with Brown Tint */}
+                <div
+                  className="absolute inset-0 z-0 transition-transform duration-700 group-hover:scale-110 opacity-40 mix-blend-multiply"
+                  style={{
+                    backgroundImage: `url(${bgImage})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
 
-              {/* Dark Gradient Overlay for Readability */}
-              <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#442D1C]/90 via-[#442D1C]/60 to-transparent group-hover:from-[#442D1C]/95 transition-all duration-500" />
+                {/* Dark Gradient Overlay for Readability */}
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-[#442D1C]/90 via-[#442D1C]/60 to-transparent group-hover:from-[#442D1C]/95 transition-all duration-500" />
+              </div>
 
               {/* Content Content - now z-20 and white text */}
               <div className="relative z-20 p-8 flex flex-col h-full justify-between">
@@ -421,6 +513,31 @@ export default function Locations() {
                   {location.phone && <div className="text-xs opacity-60 flex items-center gap-3 mt-2"><span className="text-lg opacity-100">📞</span> {location.phone}</div>}
                 </div>
 
+                <div className="mt-4 pt-4 border-t border-white/10 relative">
+                  {(user.role === 'admin' || isMemberOfLocationClub) ? (
+                    <>
+                      <button
+                        onClick={() => setActiveChatLocation(location)}
+                        className="w-full py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2 relative overflow-hidden"
+                      >
+                        <span>💬</span> Open Club Chat
+                      </button>
+                      {unreadCounts[location._id] > 0 && (
+                        <span className="absolute -top-1 right-0 bg-red-600 text-white text-[10px] font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-[#442D1C] shadow-md z-10 pointer-events-none">
+                          {unreadCounts[location._id]}
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <button
+                      disabled
+                      title="You must join a club to access the chat."
+                      className="w-full py-2 bg-white/5 text-white/30 rounded-lg font-semibold cursor-not-allowed flex items-center justify-center gap-2"
+                    >
+                      <span>🔒</span> Chat Locked (Join a Club First)
+                    </button>
+                  )}
+                </div>
 
               </div>
             </div>
@@ -435,6 +552,30 @@ export default function Locations() {
             <div className="text-6xl mb-6 opacity-20">📍</div>
             <p className="text-white text-2xl font-thin font-outfit tracking-wider mb-2">No locations found</p>
             <p className="text-white/40 text-sm italic font-light">Add your first location to get started!</p>
+          </div>
+        </div>
+      )}
+
+      {/* Chat Modal */}
+      {activeChatLocation && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm shadow-2xl slide-in-up">
+          <div className="bg-[#442D1C] rounded-3xl w-full max-w-2xl h-[80vh] flex flex-col relative border border-white/20 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
+            {/* Close Button */}
+            <button
+              onClick={() => setActiveChatLocation(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-white/10 hover:bg-white/20 text-white rounded-full transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            </button>
+            <div className="flex-1 w-full h-full p-2 pt-14 pb-2 bg-[#2D1B10]">
+              <ChatBox
+                roomId={activeChatLocation._id}
+                roomName={activeChatLocation.name}
+                currentUser={user}
+              />
+            </div>
           </div>
         </div>
       )}

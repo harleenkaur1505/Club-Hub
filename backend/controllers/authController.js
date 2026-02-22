@@ -86,7 +86,7 @@ exports.registerUser = async (req, res, next) => {
     req.session.userId = user._id
 
     res.status(201).json({
-      user: { _id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified },
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified, hasJoinedClub: false, joinedClubs: [] },
       message: 'Registration successful. Verification email sent.'
     })
   } catch (err) {
@@ -216,7 +216,10 @@ exports.loginUser = async (req, res, next) => {
     if (!matched) return res.status(401).json({ message: 'Invalid credentials' })
 
     req.session.userId = user._id
-    res.json({ user: { _id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified } })
+    const member = await Member.findOne({ email: user.email })
+    const hasJoinedClub = member && member.committees && member.committees.length > 0
+    const joinedClubs = member ? member.committees : []
+    res.json({ user: { _id: user._id, name: user.name, email: user.email, role: user.role, isVerified: user.isVerified, hasJoinedClub, joinedClubs } })
   } catch (err) {
     next(err)
   }
@@ -241,7 +244,13 @@ exports.getCurrentUser = async (req, res, next) => {
     if (!req.session || !req.session.userId) return res.status(200).json({ user: null })
     const user = await User.findById(req.session.userId).select('-password')
     if (!user) return res.status(200).json({ user: null })
-    res.json({ user })
+
+    const member = await Member.findOne({ email: user.email })
+    const hasJoinedClub = member && member.committees && member.committees.length > 0
+    const joinedClubs = member ? member.committees : []
+
+    const userPayload = { ...user.toObject(), hasJoinedClub, joinedClubs }
+    res.json({ user: userPayload })
   } catch (err) {
     next(err)
   }

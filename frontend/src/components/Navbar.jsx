@@ -110,7 +110,9 @@ export default function Navbar() {
             <div className="flex items-center gap-3">
               <div className="hidden md:flex flex-col items-end">
                 <span className="text-sm font-semibold text-white">{user.name}</span>
-                <span className="text-[10px] text-gray-400 uppercase tracking-wider">{user.role || 'Member'}</span>
+                {(user.role === 'admin' || user.hasJoinedClub) && (
+                  <span className="text-[10px] text-gray-400 uppercase tracking-wider">{user.role || 'Member'}</span>
+                )}
               </div>
               <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#5D3E26] to-[#442D1C] border border-white/10 flex items-center justify-center text-white shadow-inner">
                 {user.name.charAt(0).toUpperCase()}
