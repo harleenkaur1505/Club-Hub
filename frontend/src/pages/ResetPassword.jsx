@@ -7,6 +7,8 @@ export default function ResetPassword() {
     const location = useLocation()
 
     const [formData, setFormData] = useState({
+        email: location.state?.email || '',
+        otp: '',
         newPassword: '',
         confirmPassword: ''
     })
@@ -28,17 +30,15 @@ export default function ResetPassword() {
         setLoading(true)
 
         try {
-            const params = new URLSearchParams(location.search)
-            const token = params.get('token')
-
-            if (!token) {
-                setError('Missing reset token. Please check your email link.')
+            if (!formData.email || !formData.otp) {
+                setError('Email and OTP are required.')
                 setLoading(false)
                 return
             }
 
             await authAPI.resetPassword({
-                token,
+                email: formData.email,
+                otp: formData.otp,
                 newPassword: formData.newPassword
             })
             setMessage('Password reset successful! Redirecting to login...')
@@ -91,6 +91,33 @@ export default function ResetPassword() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6 relative z-10">
+                    <div>
+                        <label className="block text-xs font-bold text-[#C9A961] mb-2 uppercase tracking-widest">Email</label>
+                        <input
+                            type="email"
+                            required
+                            value={formData.email}
+                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                            className="w-full rounded-xl p-4 transition-all font-outfit force-dark-input"
+                            placeholder="Enter your email"
+                            readOnly={!!location.state?.email}
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-xs font-bold text-[#C9A961] mb-2 uppercase tracking-widest">6-Digit OTP</label>
+                        <input
+                            type="text"
+                            required
+                            maxLength="6"
+                            pattern="\d{6}"
+                            value={formData.otp}
+                            onChange={(e) => setFormData({ ...formData, otp: e.target.value.replace(/\D/g, '') })}
+                            className="w-full rounded-xl p-4 transition-all font-outfit force-dark-input tracking-[1em]"
+                            placeholder="------"
+                        />
+                    </div>
+
                     <div>
                         <label className="block text-xs font-bold text-[#C9A961] mb-2 uppercase tracking-widest">New Password</label>
                         <input

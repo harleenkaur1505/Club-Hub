@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { committeesAPI, eventsAPI, membersAPI } from '../services/membershipAPI'
 import { useAuth } from '../hooks/useAuth'
+import ConfirmationModal from '../components/ConfirmationModal'
 import dayjs from 'dayjs'
 
 const clubBackgrounds = {
@@ -15,7 +16,7 @@ const clubBackgrounds = {
 
 export default function ClubDetails() {
     const { id } = useParams()
-    const { user } = useAuth()
+    const { user, refreshUser } = useAuth()
     const navigate = useNavigate()
 
     const [club, setClub] = useState(null)
@@ -24,6 +25,7 @@ export default function ClubDetails() {
     const [showRegisterModal, setShowRegisterModal] = useState(false)
     const [registerError, setRegisterError] = useState(null)
     const [isRegistering, setIsRegistering] = useState(false)
+    const [isCanceling, setIsCanceling] = useState(false)
     const [memberFormData, setMemberFormData] = useState({
         name: '',
         email: '',
@@ -31,6 +33,17 @@ export default function ClubDetails() {
         address: '',
         status: 'active'
     })
+
+    // Custom Modal State
+    const [modalConfig, setModalConfig] = useState({
+        isOpen: false,
+        title: '',
+        message: '',
+        isAlert: false,
+        onConfirm: () => { }
+    })
+
+    const closeCustomModal = () => setModalConfig(prev => ({ ...prev, isOpen: false }))
 
     // Load data
     useEffect(() => {
@@ -65,7 +78,13 @@ export default function ClubDetails() {
             setEvents(clubEvents)
         } catch (err) {
             console.error(err)
-            alert("Failed to load club details")
+            setModalConfig({
+                isOpen: true,
+                title: 'Error',
+                message: 'Failed to load club details',
+                isAlert: true,
+                onConfirm: closeCustomModal
+            })
         } finally {
             setLoading(false)
         }
@@ -111,14 +130,59 @@ export default function ClubDetails() {
 
             // Refresh Data
             loadClubData()
+            if (refreshUser) await refreshUser()
             setShowRegisterModal(false)
             setMemberFormData({ name: '', email: '', phone: '', address: '', status: 'active' })
-            alert("Member registered successfully!")
+            setModalConfig({
+                isOpen: true,
+                title: 'Success',
+                message: 'Member registered successfully!',
+                isAlert: true,
+                onConfirm: closeCustomModal
+            })
         } catch (err) {
             console.error(err)
             setRegisterError(err.response?.data?.message || "Failed to register member.")
         } finally {
             setIsRegistering(false)
+        }
+    }
+
+    const triggerCancelMembership = () => {
+        setModalConfig({
+            isOpen: true,
+            title: 'Cancel Membership',
+            message: 'Are you sure you want to cancel your membership to this club?',
+            isAlert: false,
+            onConfirm: executeCancelMembership
+        })
+    }
+
+    const executeCancelMembership = async () => {
+        closeCustomModal()
+        setIsCanceling(true)
+        try {
+            await committeesAPI.cancelMembership(id)
+            loadClubData()
+            if (refreshUser) await refreshUser()
+            setModalConfig({
+                isOpen: true,
+                title: 'Membership Canceled',
+                message: 'Your membership has been successfully canceled.',
+                isAlert: true,
+                onConfirm: closeCustomModal
+            })
+        } catch (err) {
+            console.error(err)
+            setModalConfig({
+                isOpen: true,
+                title: 'Error',
+                message: err.response?.data?.message || "Failed to cancel membership.",
+                isAlert: true,
+                onConfirm: closeCustomModal
+            })
+        } finally {
+            setIsCanceling(false)
         }
     }
 
@@ -237,12 +301,23 @@ export default function ClubDetails() {
                         <p className="text-white/40 mb-6 italic font-light text-xs leading-relaxed">
                             Experience the exclusivity of {club.name}. Register now to unlock community events.
                         </p>
-                        <button
-                            onClick={handleRegister}
-                            className="w-full py-3.5 text-[#442D1C] bg-[#84592B] rounded-xl font-bold font-outfit tracking-widest uppercase transition-all transform hover:scale-[1.02] hover:bg-[#A67C52] hover:shadow-[0_0_20px_rgba(132,89,43,0.3)] active:scale-95 text-sm"
-                        >
-                            Become a Member
-                        </button>
+
+                        {user?.joinedClubs?.includes(club._id) ? (
+                            <button
+                                onClick={triggerCancelMembership}
+                                disabled={isCanceling}
+                                className="w-full py-3.5 text-white bg-red-900/60 border border-red-500/50 rounded-xl font-bold font-outfit tracking-widest uppercase transition-all transform hover:scale-[1.02] hover:bg-red-800/80 hover:shadow-[0_0_20px_rgba(220,38,38,0.3)] active:scale-95 text-sm disabled:opacity-50"
+                            >
+                                {isCanceling ? 'Canceling...' : 'Cancel Membership'}
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleRegister}
+                                className="w-full py-3.5 text-[#442D1C] bg-[#84592B] rounded-xl font-bold font-outfit tracking-widest uppercase transition-all transform hover:scale-[1.02] hover:bg-[#A67C52] hover:shadow-[0_0_20px_rgba(132,89,43,0.3)] active:scale-95 text-sm"
+                            >
+                                Become a Member
+                            </button>
+                        )}
                     </div>
 
                     {/* Members List (Compact) */}
@@ -387,6 +462,15 @@ export default function ClubDetails() {
                     </div>
                 </div>
             )}
+
+            <ConfirmationModal
+                isOpen={modalConfig.isOpen}
+                onClose={closeCustomModal}
+                onConfirm={modalConfig.onConfirm}
+                title={modalConfig.title}
+                message={modalConfig.message}
+                isAlert={modalConfig.isAlert}
+            />
 
         </div>
     )

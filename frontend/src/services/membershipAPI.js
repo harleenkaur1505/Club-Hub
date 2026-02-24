@@ -33,7 +33,8 @@ export const committeesAPI = {
   update: (id, payload) => api.put(`/committees/${id}`, payload),
   remove: (id) => api.delete(`/committees/${id}`),
   addMember: (committeeId, memberId) => api.post(`/committees/${committeeId}/members`, { memberId }),
-  removeMember: (committeeId, memberId) => api.delete(`/committees/${committeeId}/members/${memberId}`)
+  removeMember: (committeeId, memberId) => api.delete(`/committees/${committeeId}/members/${memberId}`),
+  cancelMembership: (committeeId) => api.delete(`/committees/${committeeId}/cancel`)
 }
 
 export const locationsAPI = {

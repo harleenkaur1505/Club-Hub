@@ -134,38 +134,33 @@ exports.forgotPassword = async (req, res, next) => {
     const user = await User.findOne({ email: email.toLowerCase().trim() })
     if (!user) return res.status(404).json({ message: 'User not found' })
 
-    // Generate Reset Token (expires in 20 mins)
-    // We sign with user's current password hash + secret to ensure 
-    // that if password changes, this token becomes invalid automatically (one-time use equivalent-ish)
-    // BUT for simplicity, standard secret is often used. 
-    // To implement "one-time" strictly, we can use a randomly generated secret stored in DB, strictly per user.
-    // For this app, let's use standard secret for simplicity but short expiry.
-    const resetToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET || 'secret',
-      { expiresIn: '20m' }
-    )
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
 
-    const resetUrl = `${req.protocol}://localhost:5173/reset-password?token=${resetToken}`
+    // Set OTP and expire (20 mins)
+    user.resetPasswordOtp = otp
+    user.resetPasswordExpire = Date.now() + 20 * 60 * 1000
+    await user.save({ validateBeforeSave: false })
 
     const message = `
-      <h1>Password Reset</h1>
-      <p>You requested a password reset. Click the link below to reset your password:</p>
-      <a href="${resetUrl}" clicktracking=off>${resetUrl}</a>
+      <h1>Password Reset OTP</h1>
+      <p>You requested a password reset. Use the following 6-digit OTP to reset your password:</p>
+      <h2 style="background: #f4f4f4; padding: 10px 20px; display: inline-block; letter-spacing: 5px; border-radius: 5px;">${otp}</h2>
+      <p>This OTP will expire in 20 minutes.</p>
     `
 
     try {
       await sendEmail({
         to: user.email,
-        subject: 'Club Membership - Password Reset',
-        text: `Reset password link: ${resetUrl}`,
+        subject: 'Club Membership - Password Reset OTP',
+        text: `Your password reset OTP is: ${otp}`,
         html: message
       })
-      res.status(200).json({ message: 'Email sent' })
+      res.status(200).json({ message: 'OTP sent to email' })
     } catch (err) {
-      user.resetPasswordToken = undefined
+      user.resetPasswordOtp = undefined
       user.resetPasswordExpire = undefined
-      await user.save()
+      await user.save({ validateBeforeSave: false })
       return res.status(500).json({ message: 'Email could not be sent' })
     }
   } catch (err) {
@@ -176,23 +171,22 @@ exports.forgotPassword = async (req, res, next) => {
 // reset password
 exports.resetPassword = async (req, res, next) => {
   try {
-    const { token, newPassword } = req.body
+    const { email, otp, newPassword } = req.body
 
-    if (!token || !newPassword) return res.status(400).json({ message: 'Token and new password required' })
+    if (!email || !otp || !newPassword) return res.status(400).json({ message: 'Email, OTP, and new password are required' })
 
-    // Verify token
-    let decoded
-    try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret')
-    } catch (e) {
-      return res.status(400).json({ message: 'Invalid or expired token' })
-    }
+    const user = await User.findOne({
+      email: email.toLowerCase().trim(),
+      resetPasswordOtp: otp,
+      resetPasswordExpire: { $gt: Date.now() }
+    })
 
-    const user = await User.findById(decoded.id)
-    if (!user) return res.status(404).json({ message: 'User not found' })
+    if (!user) return res.status(400).json({ message: 'Invalid or expired OTP' })
 
     // Set new password
     user.password = newPassword
+    user.resetPasswordOtp = undefined
+    user.resetPasswordExpire = undefined
     await user.save()
 
     res.status(200).json({ message: 'Password reset successful' })

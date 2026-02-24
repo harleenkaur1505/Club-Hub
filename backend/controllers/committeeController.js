@@ -144,3 +144,52 @@ exports.removeMemberFromCommittee = async (req, res, next) => {
     next(err)
   }
 }
+
+exports.cancelMembership = async (req, res, next) => {
+  try {
+    const { committeeId } = req.params
+
+    const committee = await Committee.findById(committeeId)
+    if (!committee) {
+      return res.status(404).json({ message: 'Committee not found' })
+    }
+
+    const member = await Member.findOne({ email: req.user.email })
+    if (!member) {
+      return res.status(404).json({ message: 'Member profile not found' })
+    }
+
+    const memberId = member._id.toString()
+
+    // Find and calculate pending payments to remove
+    const Payment = require('../models/Payment')
+    const pendingPayments = await Payment.find({
+      member: memberId,
+      club: committee.name,
+      type: 'dues',
+      status: 'pending'
+    })
+
+    const totalToRemove = pendingPayments.reduce((sum, p) => sum + p.amount, 0)
+
+    // Delete the pending payments
+    if (pendingPayments.length > 0) {
+      await Payment.deleteMany({ _id: { $in: pendingPayments.map(p => p._id) } })
+
+      // Update member's feesDue
+      member.feesDue = Math.max(0, (member.feesDue || 0) - totalToRemove)
+    }
+
+    // Remove member from committee
+    committee.members = committee.members.filter(id => id.toString() !== memberId)
+    await committee.save()
+
+    // Remove committee from member's committees array
+    member.committees = member.committees.filter(id => id.toString() !== committeeId)
+    await member.save()
+
+    res.json({ message: 'Membership canceled successfully, and pending dues cleared' })
+  } catch (err) {
+    next(err)
+  }
+}

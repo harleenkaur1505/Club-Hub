@@ -1,10 +1,10 @@
 import React from 'react';
 
-const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message, isAlert = false, confirmText = "Confirm Action", cancelText = "Dismiss" }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity">
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity">
             <div className="bg-[#3b2a20] rounded-[2.5rem] shadow-2xl w-full max-w-md transform transition-all scale-100 p-8 border border-white/5 relative overflow-hidden">
                 {/* Close Button (X) */}
                 <button
@@ -23,17 +23,19 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
                     </p>
 
                     <div className="flex flex-col-reverse gap-4">
+                        {!isAlert && (
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-4 rounded-xl text-[#8C6B46] font-extrabold tracking-[0.2em] text-sm hover:text-[#bca07d] transition-colors uppercase"
+                            >
+                                {cancelText}
+                            </button>
+                        )}
                         <button
-                            onClick={onClose}
-                            className="px-6 py-4 rounded-xl text-[#8C6B46] font-extrabold tracking-[0.2em] text-sm hover:text-[#bca07d] transition-colors uppercase"
-                        >
-                            Dismiss
-                        </button>
-                        <button
-                            onClick={onConfirm}
+                            onClick={isAlert ? onClose : onConfirm}
                             className="w-full px-6 py-4 rounded-2xl bg-[#8C6B46] text-[#2A1B12] font-extrabold text-sm tracking-[0.2em] shadow-lg hover:bg-[#a38058] hover:scale-[1.02] active:scale-[0.98] transition-all duration-300 uppercase"
                         >
-                            Confirm Action
+                            {isAlert ? 'OK' : confirmText}
                         </button>
                     </div>
                 </div>

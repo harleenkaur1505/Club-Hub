@@ -7,18 +7,23 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const { data } = await api.get('/auth/me')
-        setUser(data.user)
-      } catch (err) {
-        setUser(null)
-      } finally {
-        setLoading(false)
-      }
+  const refreshUser = async () => {
+    try {
+      const { data } = await api.get('/auth/me')
+      setUser(data.user)
+      return data.user
+    } catch (err) {
+      setUser(null)
+      return null
     }
-    fetchUser()
+  }
+
+  useEffect(() => {
+    const initUser = async () => {
+      await refreshUser()
+      setLoading(false)
+    }
+    initUser()
   }, [])
 
   const login = async (credentials) => {
@@ -39,7 +44,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   )
